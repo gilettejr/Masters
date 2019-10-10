@@ -9,8 +9,6 @@ Created on Sat Sep 28 15:14:03 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
-from astropy.coordinates import SkyCoord
-from astropy import units as u
 
 #class for reading in and plotting ascii file data
 
@@ -32,6 +30,8 @@ class asymphr:
         self.pmraunc = 0
         self.pmdec = 0
         self.pmdecunc = 0
+        self.raunc = 0.0005/3600
+        self.decunc = 0.0005/3600
         
         #required file opened
         
@@ -57,7 +57,7 @@ class asymphr:
             
             #transformations carried out
             
-            long = rah + ram/60 + ras/3600
+            long = (rah + ram/60 + ras/3600)*15
             lat = dd + dm/60 + ds/3600
             
             #array containing transformed co-ordinates returned
@@ -68,7 +68,7 @@ class asymphr:
         
         data=self.data
         
-        #columns assigned to variables for easer
+        #columns assigned to variables for ease
         
         rah,ram,ras,dd,dm,ds = data[:,0],data[:,1],data[:,2],data[:,3],data[:,4],data[:,5]
         
@@ -215,13 +215,36 @@ class gaiadata:
                 
                 if ((self.ra[j]-(self.raunc[j] + odat.raunc)<odat.ra[i]<self.ra[j]+(self.raunc[j]+odat.raunc)) and (self.dec[j]-(self.decunc[j] + odat.decunc)<odat.dec[i]<self.dec[j]+(self.decunc[j]+odat.decunc))):
                     print('Crossmatch at index' + str(i))
-                    cross_result.append(1)
+                    print(self.ra[j])
+                    print(odat.ra[i])
+                    print(self.raunc[j])
+                                        
+                    if self.pmra[j] == np.nan:
+                        
+                        cross_result.append(1)
+                        
+                        continue
                     
+                    elif ((self.pmra[j]-(self.pmraunc[j] + odat.pmraunc)<odat.pmra<self.pmra[j]+(self.pmraunc[j]+odat.pmraunc)) and (self.pmdec[j]-(self.pmdecunc[j] + odat.pmdecunc)<odat.pmdec<self.pmdec[j]+(self.pmdecunc[j]+odat.pmdecunc))):
+                        
+                        cross_result.append(2)
+                    
+                    else:
+                        
+                        cross_result.append(3)
+                        
                     
                 else:
                     cross_result.append(0)
+        
+        return np.array(cross_result)
                     
-                
+    #0 - not crossmatched
+    #1 - crossmatched, no pm available
+    #2 - crossmatched, gaia pm within uncertainty of galactic pm
+    #3 - crossmatched, pm not within uncertainty of galactic pm
+    
+    #retain 0, 1, 2, discard 3 as it shows a good measurement of pm, most likely foreground star
     
     #takes object being crossmatched with gaia data as input   
     
@@ -310,14 +333,19 @@ def colour_colour(target):
 #m32 = asymphr('M32.asc',0)
 #kj_cmd(m32)
 #spatial_plot(m32)
-
-gaian147 = gaiadata('ngc147_gaiapm.csv')
-
-print(gaian147.data)
-
-
-
     
-            
+n147 = asymphr('lot_n147.unique',0)
+n147.loadascii()
+n147.ciscuts()
+gaian147 = gaiadata('ngc147_gaiapm.csv')
+gaian147.loadfile()
+cross_list = gaian147.crossmatch(n147)
+
+
+#print(gaian147.data)
+
+#standard coordinates
+    
+
         
         
