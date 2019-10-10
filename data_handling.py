@@ -26,6 +26,13 @@ class asymphr:
         self.filename = filename
         self.distance = distance
         
+        #ngc147data
+        
+        self.pmra = 0
+        self.pmraunc = 0
+        self.pmdec = 0
+        self.pmdecunc = 0
+        
         #required file opened
         
         file = open(filename,'r')
@@ -171,10 +178,21 @@ class asymphr:
 
 #class for reading gaia data tables in format described below
 
-#gaiaformat:ra,raunc,dec,decunc,pmra,pmraunc,pmdec,pmdecunc
+#gaiaformat:sourceid,ra,raunc,dec,decunc,pmra,pmraunc,pmdec,pmdecunc
         
-#class inherits from asymphr, initialises by loading datafile into numpy array
-class gaiadata(asymphr):
+#class initialises by loading datafile into numpy array
+class gaiadata:
+    
+    def __init__(self,filename):
+        self.filename = filename
+        
+        file  = open(filename,'r')
+        
+        data = np.genfromtxt(file,delimiter = ',',missing_values='',filling_values=np.nan)
+        
+        file.close()
+        
+        self.data = data
     
     #method for assigning data into columns similarly to asymphr.loadascii
     
@@ -185,9 +203,29 @@ class gaiadata(asymphr):
         
         self.ra,self.raunc,self.dec,self.decunc,self.pmra,self.pmraunc,self.pmdec,self.pmdecunc = data[:,1],data[:,2],data[:,3],data[:,4],data[:,5],data[:,6],data[:,7],data[:,8]
     
-    #takes 1d array in the format[pmra,pmraunc,pmdec,pmdecunc]    
+    #produces an array of indices with crossmatched stars, but with contradictory pm motions
     
-    def crossmatch(galaxypms)
+    def crossmatch(self,odat):
+        
+        cross_result = []
+        
+        for i in range(len(odat.ra)):
+            
+            for j in range(len(self.ra)):
+                
+                if ((self.ra[j]-(self.raunc[j] + odat.raunc)<odat.ra[i]<self.ra[j]+(self.raunc[j]+odat.raunc)) and (self.dec[j]-(self.decunc[j] + odat.decunc)<odat.dec[i]<self.dec[j]+(self.decunc[j]+odat.decunc))):
+                    print('Crossmatch at index' + str(i))
+                    cross_result.append(1)
+                    
+                    
+                else:
+                    cross_result.append(0)
+                    
+                
+    
+    #takes object being crossmatched with gaia data as input   
+    
+    #def crossmatch(galaxypms)
         
 #function plots k-j colour magnitude diagram from asymphr class execution
 
@@ -256,10 +294,10 @@ def colour_colour(target):
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
-n147 = asymphr('lot_n147.unique',0)
+#n147 = asymphr('lot_n147.unique',0)
 #kj_cmd(n147)
 #colour_colour(n147)
-spatial_plot(n147)
+#spatial_plot(n147)
 
 #n185 = asymphr('lot_n185.unique',0)
 #kj_cmd(n185)
@@ -273,6 +311,9 @@ spatial_plot(n147)
 #kj_cmd(m32)
 #spatial_plot(m32)
 
+gaian147 = gaiadata('ngc147_gaiapm.csv')
+
+print(gaian147.data)
 
 
 
