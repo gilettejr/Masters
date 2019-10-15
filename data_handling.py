@@ -30,8 +30,8 @@ class asymphr:
         self.pmraunc = 0
         self.pmdec = 0
         self.pmdecunc = 0
-        self.raunc = 0.0005/3600
-        self.decunc = 0.0005/3600
+        self.raunc = 0.0005
+        self.decunc = 0.0005
         
         #required file opened
         
@@ -188,21 +188,42 @@ class gaiadata:
         
         file  = open(filename,'r')
         
+        #delimiter specified, since csv file being read in
+        
         data = np.genfromtxt(file,delimiter = ',',missing_values='',filling_values=np.nan)
         
         file.close()
-        
+        #array assigned as data object
         self.data = data
     
-    #method for assigning data into columns similarly to asymphr.loadascii
+    #method for assigning data into columns similarly to asymphr.loadascii, and carrying out initial data cuts
     
     def loadfile(self):
         data=self.data
         
+        k=[]
         #columns assigned to variables
+        #rows with high excess noise and badly measured parallaxes cut
+        for i in range(len(data[:,1])):
+            if(data[i,11])>2 or (data[i,6]<1):
+                k.append('yeet')
+                for j in range(len(data[i,:])):
+                    data[i,j]=np.nan
+            #rows with proper motions within uncertainty of 0 cut, distant sources
+            elif(np.abs(data[i,7]/data[i,8])<1) or (np.abs(data[i,9]/data[i,10])<1):
+                k.append('yeet')
+                for j in range(len(data[i,:])):
+                    data[i,j]=np.nan
+                
+                    
+
         
-        self.ra,self.raunc,self.dec,self.decunc,self.pmra,self.pmraunc,self.pmdec,self.pmdecunc = data[:,1],data[:,2],data[:,3],data[:,4],data[:,5],data[:,6],data[:,7],data[:,8]
-    
+        
+        self.ra,self.raunc,self.dec,self.decunc,self.para,self.para_over_err,self.pmra,self.pmraunc,self.pmdec,self.pmdecunc,self.excess_sig = data[:,1],data[:,2],data[:,3],data[:,4],data[:,5],data[:,6],data[:,7],data[:,8],data[:,9],data[:,10],data[:,11]
+        
+        for i in range(len(self.raunc)):
+            self.raunc[i] = self.raunc[i]/3600000
+            self.decunc[i] = self.decunc[i]/3600000
     #produces an array of indices with crossmatched stars, but with contradictory pm motions
     
     def crossmatch(self,odat):
@@ -210,6 +231,8 @@ class gaiadata:
         cross_result = []
         
         for i in range(len(odat.ra)):
+            
+            print(i)
             
             for j in range(len(self.ra)):
                 
@@ -337,9 +360,9 @@ def colour_colour(target):
 n147 = asymphr('lot_n147.unique',0)
 n147.loadascii()
 n147.ciscuts()
-gaian147 = gaiadata('ngc147_gaiapm.csv')
+gaian147 = gaiadata('ngc147gaiapm.csv')
 gaian147.loadfile()
-cross_list = gaian147.crossmatch(n147)
+gaian147.crossmatch(n147)
 
 
 #print(gaian147.data)
