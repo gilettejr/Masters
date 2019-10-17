@@ -57,8 +57,8 @@ class asymphr:
             
             #transformations carried out
             
-            long = (rah + ram/60 + ras/3600)*15
-            lat = dd + dm/60 + ds/3600
+            long = (rah + np.divide(ram,60) + np.divide(ras,3600))*15
+            lat = dd + np.divide(dm,60) + np.divide(ds,3600)
             
             #array containing transformed co-ordinates returned
     
@@ -233,35 +233,22 @@ class gaiadata:
         for i in range(len(odat.ra)):
             
             print(i)
+            count = []
             
             for j in range(len(self.ra)):
                 
                 if ((self.ra[j]-(self.raunc[j] + odat.raunc)<odat.ra[i]<self.ra[j]+(self.raunc[j]+odat.raunc)) and (self.dec[j]-(self.decunc[j] + odat.decunc)<odat.dec[i]<self.dec[j]+(self.decunc[j]+odat.decunc))):
                     print('Crossmatch at index' + str(i))
-                    print(self.ra[j])
-                    print(odat.ra[i])
-                    print(self.raunc[j])
-                                        
-                    if self.pmra[j] == np.nan:
+                    count.append(0)
+                    cross_result.append(i)
+
                         
-                        cross_result.append(1)
-                        
-                        continue
-                    
-                    elif ((self.pmra[j]-(self.pmraunc[j] + odat.pmraunc)<odat.pmra<self.pmra[j]+(self.pmraunc[j]+odat.pmraunc)) and (self.pmdec[j]-(self.pmdecunc[j] + odat.pmdecunc)<odat.pmdec<self.pmdec[j]+(self.pmdecunc[j]+odat.pmdecunc))):
-                        
-                        cross_result.append(2)
-                    
-                    else:
-                        
-                        cross_result.append(3)
-                        
-                    
-                else:
-                    cross_result.append(0)
-        
-        return np.array(cross_result)
-                    
+
+
+        print('Total number of crossmatches:')
+        print(len(count))
+        cross_result = np.array(cross_result)
+        np.save('gaia_crossmatch_all_cull',cross_result)
     #0 - not crossmatched
     #1 - crossmatched, no pm available
     #2 - crossmatched, gaia pm within uncertainty of galactic pm
@@ -292,8 +279,8 @@ def kj_cmd(target):
     plt.rc('axes',labelsize = 20)
     plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 0.5)
     plt.gca().invert_yaxis()
-    plt.ylabel('K')
-    plt.xlabel('J-K')
+    plt.ylabel('$K_0')
+    plt.xlabel('J-$K_0$')
     plt.title(target.filename + ' CMD')
     
     plt.show()
@@ -318,6 +305,25 @@ def spatial_plot(target):
     plt.title(target.filename + ' Spatial Plot')
     plt.show()
     
+def spatial_plot_standard(target,tangentra,tangentdec):
+    
+    target.loadascii()
+    target.ciscuts()
+    
+    ra = np.radians(target.ra)
+    dec = np.radians(target.dec)
+    tanra = np.radians(tangentra)
+    tandec = np.radians(tangentdec)
+    
+    xi = (np.cos(dec)*np.sin(ra-tanra))/(np.sin(dec)*np.sin(tandec) + np.cos(dec)*np.cos(tandec)*np.cos(ra-tanra))
+    
+    eta = (np.sin(dec)*np.cos(tandec)-np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))/(np.sin(dec)*np.cos(tandec)+np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))
+    
+    plt.rc('axes',labelsize = 20)
+    plt.scatter(xi,eta,s=3,marker = 'o',alpha=0.5)
+    plt.gca().set_ylabel(r'$\eta$')
+    plt.gca().set_xlabel(r'$\xi$')
+
 def colour_colour(target):
     
     plt.figure()
@@ -332,11 +338,42 @@ def colour_colour(target):
     
     plt.rc('axes',labelsize = 20)
     plt.scatter(target.jmag - target.hmag,target.hmag-target.kmag,s=1,marker=',',alpha = 0.5)
-    plt.ylabel('H-K')
-    plt.xlabel('J-K')
+    plt.ylabel('H-$K_0$')
+    plt.xlabel('J-$K_0$')
     plt.title(target.filename + 'Colour-colour diagram')
     
     plt.show()
+    
+def plot_crossmatch_cmd(target,cross_indices):
+    
+    target.loadascii()
+    target.ciscuts()
+    target.extinction()
+    
+    crossjmag = []
+    crosshmag = []
+    crosskmag = []
+    for j in cross_indices:
+        crossjmag.append(target.jmag[j])
+        crosskmag.append(target.kmag[j])
+        crosshmag.append(target.hmag[j])
+        
+    crossjmag=np.array(crossjmag)
+    crosshmag = np.array(crosshmag)
+    crosskmag = np.array(crosskmag)    
+                
+    plt.rc('axes',labelsize=20)
+    
+    plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+    plt.scatter(crossjmag-crosskmag,crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
+    
+    plt.gca().invert_yaxis()
+    plt.ylabel('$H_0$')
+    plt.xlabel('J-$K_0$')
+    plt.legend()
+    
+    plt.show()
+    
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
@@ -344,6 +381,7 @@ def colour_colour(target):
 #kj_cmd(n147)
 #colour_colour(n147)
 #spatial_plot(n147)
+#spatial_plot_standard(n147,8.300500,48.508750)
 
 #n185 = asymphr('lot_n185.unique',0)
 #kj_cmd(n185)
@@ -353,17 +391,22 @@ def colour_colour(target):
 #kj_cmd(n205)
 #spatial_plot(n205)
 
-#m32 = asymphr('M32.asc',0)
+m32 = asymphr('M32.asc',0)
 #kj_cmd(m32)
-#spatial_plot(m32)
+spatial_plot(m32)
     
-n147 = asymphr('lot_n147.unique',0)
-n147.loadascii()
-n147.ciscuts()
-gaian147 = gaiadata('ngc147gaiapm.csv')
-gaian147.loadfile()
-gaian147.crossmatch(n147)
+#n147 = asymphr('lot_n147.unique',0)
+#n147.loadascii()
+#n147.ciscuts()
 
+
+#gaian147 = gaiadata('ngc147gaiapm.csv')
+#gaian147.loadfile()
+#gaian147.crossmatch(n147)
+
+
+#cross_cat = np.load('gaia_crossmatch_all_cull.npy')
+#plot_crossmatch_cmd(n147,cross_cat)
 
 #print(gaian147.data)
 
