@@ -133,6 +133,36 @@ class asymphr:
                 self.kerr[i] = np.nan
                 self.kcis[i] = np.nan
                 
+    def lowciscuts(self):
+        
+        #loop to read cis number for each object
+        
+        for i in range(len(self.jcis)):
+            
+            #logic statement returns TRUE if cis number in all wavebands is not -1 or -2
+            
+            if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0) and (self.hcis[i] != -1.0 and self.hcis[i]!=-2.0) and (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0):
+                
+                #if TRUE returned, data not plotted
+                
+                self.ra[i] = np.nan
+                self.dec[i] = np.nan
+                self.xj[i] = np.nan
+                self.yj[i] = np.nan
+                self.jmag[i] = np.nan
+                self.jerr[i] = np.nan
+                self.jcis[i] = np.nan
+                self.xh[i] = np.nan
+                self.yh[i] = np.nan
+                self.hmag[i] = np.nan
+                self.herr[i] = np.nan
+                self.hcis[i] = np.nan
+                self.xk[i] = np.nan
+                self.yk[i] = np.nan
+                self.kmag[i] = np.nan
+                self.kerr[i] = np.nan
+                self.kcis[i] = np.nan
+                
     #method for carrying out extinction corrections on data
                                         
     def extinction(self):
@@ -229,11 +259,12 @@ class gaiadata:
     def crossmatch(self,odat):
         
         cross_result = []
+        count = []
         
         for i in range(len(odat.ra)):
             
             print(i)
-            count = []
+            
             
             for j in range(len(self.ra)):
                 
@@ -248,7 +279,7 @@ class gaiadata:
         print('Total number of crossmatches:')
         print(len(count))
         cross_result = np.array(cross_result)
-        np.save('gaia_crossmatch_all_cull',cross_result)
+        np.save('gaia_crossmatch_'+self.filename,cross_result)
     #0 - not crossmatched
     #1 - crossmatched, no pm available
     #2 - crossmatched, gaia pm within uncertainty of galactic pm
@@ -261,6 +292,26 @@ class gaiadata:
     #def crossmatch(galaxypms)
         
 #function plots k-j colour magnitude diagram from asymphr class execution
+
+class topcatcross(asymphr):
+    
+    #creates array containing ra and dec in decimal coordinates for crossmatching. Saves to a csv file
+    #must be run after loadascii
+    
+    
+    
+    def load_ascii_to_cross(self):
+        
+
+        
+        list = []
+        
+
+            
+        print(list)
+        
+        
+        
 
 def kj_cmd(target):
 
@@ -368,8 +419,8 @@ def plot_crossmatch_cmd(target,cross_indices):
     plt.scatter(crossjmag-crosskmag,crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
     
     plt.gca().invert_yaxis()
-    plt.ylabel('$H_0$')
-    plt.xlabel('J-$K_0$')
+    plt.ylabel('$K_0$')
+    plt.xlabel('$(J-K)_0$')
     plt.legend()
     
     plt.show()
@@ -381,19 +432,22 @@ def plot_crossmatch_cmd(target,cross_indices):
 #kj_cmd(n147)
 #colour_colour(n147)
 #spatial_plot(n147)
-#spatial_plot_standard(n147,8.300500,48.508750)
+##spatial_plot_standard(n147,8.300500,48.508750)
 
 #n185 = asymphr('lot_n185.unique',0)
 #kj_cmd(n185)
 #spatial_plot(n185)
+#spatial_plot_standard(n185,9.741542,48.337389)
 
-#n205 = asymphr('N205_two.asc',0)
+n205 = asymphr('N205_two.asc',0)
 #kj_cmd(n205)
 #spatial_plot(n205)
+#spatial_plot_standard(n205,10.092000,41.685306)
 
-m32 = asymphr('M32.asc',0)
+#m32 = asymphr('M32.asc',0)
 #kj_cmd(m32)
-spatial_plot(m32)
+#spatial_plot(m32)
+#spatial_plot_standard(m32,10.674300,40.865287)
     
 #n147 = asymphr('lot_n147.unique',0)
 #n147.loadascii()
@@ -405,13 +459,43 @@ spatial_plot(m32)
 #gaian147.crossmatch(n147)
 
 
-#cross_cat = np.load('gaia_crossmatch_all_cull.npy')
-#plot_crossmatch_cmd(n147,cross_cat)
+##n147cross_cat = np.load('gaia_crossmatch_all_cull.npy')
+#plot_crossmatch_cmd(n147,n147cross_cat)
+
+#n185cross_cat = np.load('gaia_crossmatch_ngc185gaiapm.csv.npy')
+#plot_crossmatch_cmd(n185,n185cross_cat)
+
+#m32cross_cat = np.load('gaia_crossmatch_m32gaiapm.csv.npy')
+#plot_crossmatch_cmd(m32,m32cross_cat)
+
+n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
+plot_crossmatch_cmd(n205,n205cross_cat)
 
 #print(gaian147.data)
 
 #standard coordinates
     
+#n147cross=topcatcross('lot_n185.unique',0)
+#n147cross.loadascii()
+#n147cross.load_ascii_to_cross()
 
-        
+
+
+#n185.loadascii()
+#n185.ciscuts()
+#gaian185 = gaiadata('ngc185gaiapm.csv')
+#gaian185.loadfile()
+#gaian185.crossmatch(n185)
+
+#m32.loadascii()
+#m32.ciscuts()
+#gaiam32 = gaiadata('m32gaiapm.csv')
+#gaiam32.loadfile()
+#gaiam32.crossmatch(m32)
+
+#n205.loadascii()
+##n205.ciscuts()
+#gaian205 = gaiadata('ngc205gaiapm.csv')
+#gaian205.loadfile()
+#gaian205.crossmatch(n205)
         
