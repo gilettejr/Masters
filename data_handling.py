@@ -8,8 +8,9 @@ Created on Sat Sep 28 15:14:03 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-
+from astropy import units as u
+from astropy.io import fits
+from astropy.table import Table,Column,QTable
 #class for reading in and plotting ascii file data
 
 class asymphr:
@@ -100,6 +101,13 @@ class asymphr:
         self.kmag = kmag
         self.kerr = kerr
         self.kcis = kcis
+        
+        index = []
+        
+        for i in range(len(self.ra)):
+            index.append(i)
+        self.index = np.array(index)
+            
     
     #method for making cuts based on photometric quality
     
@@ -303,12 +311,42 @@ class topcatcross(asymphr):
     def load_ascii_to_cross(self):
         
 
-        
-        list = []
+        index=self.index
+        ra=self.ra
+        dec=self.dec
         
 
             
-        print(list)
+        
+        crosscat = np.array([ra,dec])
+        
+        crosscat = crosscat.transpose()
+        
+        #np.savetxt('n147wfcam.csv',crosscat,delimiter=',')
+        
+        t=QTable()
+        t['index'] = index
+        t['ra'] = ra*u.deg
+        t['dec'] = dec*u.deg
+        
+        t.write(self.filename+'crosscat.fits',overwrite=True)
+        
+    def read_crossed_csv(self,filename):
+        
+        
+        self.filename = filename
+        
+        file  = open(filename,'r')
+        
+        #delimiter specified, since csv file being read in
+        
+        crossdata = np.genfromtxt(file,delimiter = ',',missing_values='',filling_values=np.nan)
+        
+        file.close()
+        #array assigned as data object
+        self.crossdata = crossdata
+        
+
         
         
         
@@ -424,11 +462,17 @@ def plot_crossmatch_cmd(target,cross_indices):
     plt.legend()
     
     plt.show()
+
+def plot_topmatch_cmd(gaiacross):
+    gaiacross.loadascii()
+    gaiacross.ciscuts()
+    gaiacross.extinction()
     
+
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
-#n147 = asymphr('lot_n147.unique',0)
+n147 = asymphr('lot_n147.unique',0)
 #kj_cmd(n147)
 #colour_colour(n147)
 #spatial_plot(n147)
@@ -439,7 +483,7 @@ def plot_crossmatch_cmd(target,cross_indices):
 #spatial_plot(n185)
 #spatial_plot_standard(n185,9.741542,48.337389)
 
-n205 = asymphr('N205_two.asc',0)
+#n205 = asymphr('N205_two.asc',0)
 #kj_cmd(n205)
 #spatial_plot(n205)
 #spatial_plot_standard(n205,10.092000,41.685306)
@@ -468,15 +512,16 @@ n205 = asymphr('N205_two.asc',0)
 #m32cross_cat = np.load('gaia_crossmatch_m32gaiapm.csv.npy')
 #plot_crossmatch_cmd(m32,m32cross_cat)
 
-n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
-plot_crossmatch_cmd(n205,n205cross_cat)
+#n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
+#plot_crossmatch_cmd(n205,n205cross_cat)
 
 #print(gaian147.data)
 
 #standard coordinates
     
-#n147cross=topcatcross('lot_n185.unique',0)
+#n147cross=topcatcross('lot_n147.unique',0)
 #n147cross.loadascii()
+#n147cross.ciscuts()
 #n147cross.load_ascii_to_cross()
 
 
@@ -498,4 +543,5 @@ plot_crossmatch_cmd(n205,n205cross_cat)
 #gaian205 = gaiadata('ngc205gaiapm.csv')
 #gaian205.loadfile()
 #gaian205.crossmatch(n205)
-        
+
+n147cross = topcatcross('lot_n147.unique',0)
