@@ -8,8 +8,10 @@ Created on Sat Sep 28 15:14:03 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-
-
+import pandas as pd
+from astropy import units as u
+from astropy.io import fits
+from astropy.table import Table,Column,QTable
 #class for reading in and plotting ascii file data
 
 class asymphr:
@@ -100,6 +102,13 @@ class asymphr:
         self.kmag = kmag
         self.kerr = kerr
         self.kcis = kcis
+        
+        index = []
+        
+        for i in range(len(self.ra)):
+            index.append(i)
+        self.index = np.array(index)
+            
     
     #method for making cuts based on photometric quality
     
@@ -303,12 +312,38 @@ class topcatcross(asymphr):
     def load_ascii_to_cross(self):
         
 
-        
-        list = []
+        index=self.index
+        ra=self.ra
+        dec=self.dec
         
 
             
-        print(list)
+        
+        crosscat = np.array([ra,dec])
+        
+        crosscat = crosscat.transpose()
+        
+        #np.savetxt('n147wfcam.csv',crosscat,delimiter=',')
+        
+        t=QTable()
+        t['index_no'] = index
+        t['ra'] = ra*u.deg
+        t['dec'] = dec*u.deg
+        
+        t.write(self.filename+'crosscat.fits',overwrite=True)
+        
+    def read_crossed_csv(self,crossfile):
+        
+        
+        self.crossfile = crossfile
+        
+        crossed = pd.read_csv(crossfile)
+        
+        print(crossed.index_no)
+        
+        return crossed
+        
+
         
         
         
@@ -424,7 +459,69 @@ def plot_crossmatch_cmd(target,cross_indices):
     plt.legend()
     
     plt.show()
+
+def plot_topmatch_cmd(gaiacross,incrossfile):
+    crossed_table = gaiacross.read_crossed_csv(incrossfile)
     
+    #noise cut
+    
+    for i in range(len(crossed_table.pmra)):
+        if crossed_table.astrometric_excess_noise_sig[i] > 2:
+            crossed_table.index_no[i]=np.nan
+            
+    #parallax cut
+            
+    #for i in range(len(crossed_table.pmra)):
+        #if crossed_table.parallax_over_error[i] < 1:
+            ##crossed_table.index_no[i]=np.nan
+            
+    #proper motion cut
+            
+    for i in range(len(crossed_table.pmra)):
+        if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
+            crossed_table.index_no[i]=np.nan
+    print(crossed_table.pmra)
+    
+    gaiacross.loadascii()
+    gaiacross.ciscuts()
+    gaiacross.extinction()
+    
+    crossjmag = []
+    crosshmag = []
+    crosskmag = []
+    
+    print(crossed_table.index_no)
+    
+    for j in crossed_table.index_no:
+        
+        if np.isnan(j) == True:
+            
+            continue
+        
+        else:
+            crossjmag.append(gaiacross.jmag[int(j)])
+            crosskmag.append(gaiacross.kmag[int(j)])
+            crosshmag.append(gaiacross.hmag[int(j)])
+        
+    crossjmag = np.array(crossjmag)
+    crosshmag = np.array(crosshmag)
+    crosskmag = np.array(crosskmag)    
+                
+    plt.rc('axes',labelsize=20)
+    
+    plt.scatter(gaiacross.jmag-gaiacross.kmag,gaiacross.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+    plt.scatter(crossjmag-crosskmag,crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
+    
+    plt.gca().invert_yaxis()
+    plt.ylabel('$K_0$')
+    plt.xlabel('$(J-K)_0$')
+    plt.legend()
+    
+    plt.show()
+    
+    
+    
+
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
@@ -439,7 +536,7 @@ def plot_crossmatch_cmd(target,cross_indices):
 #spatial_plot(n185)
 #spatial_plot_standard(n185,9.741542,48.337389)
 
-n205 = asymphr('N205_two.asc',0)
+#n205 = asymphr('N205_two.asc',0)
 #kj_cmd(n205)
 #spatial_plot(n205)
 #spatial_plot_standard(n205,10.092000,41.685306)
@@ -468,15 +565,16 @@ n205 = asymphr('N205_two.asc',0)
 #m32cross_cat = np.load('gaia_crossmatch_m32gaiapm.csv.npy')
 #plot_crossmatch_cmd(m32,m32cross_cat)
 
-n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
-plot_crossmatch_cmd(n205,n205cross_cat)
+#n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
+#plot_crossmatch_cmd(n205,n205cross_cat)
 
 #print(gaian147.data)
 
 #standard coordinates
     
-#n147cross=topcatcross('lot_n185.unique',0)
+#n147cross=topcatcross('lot_n147.unique',0)
 #n147cross.loadascii()
+#n147cross.ciscuts()
 #n147cross.load_ascii_to_cross()
 
 
@@ -498,4 +596,8 @@ plot_crossmatch_cmd(n205,n205cross_cat)
 #gaian205 = gaiadata('ngc205gaiapm.csv')
 #gaian205.loadfile()
 #gaian205.crossmatch(n205)
-        
+
+n147cross = topcatcross('lot_n147.unique',0)
+plot_topmatch_cmd(n147cross,'crossedn147.csv')
+
+
