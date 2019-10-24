@@ -8,6 +8,7 @@ Created on Sat Sep 28 15:14:03 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from astropy import units as u
 from astropy.io import fits
 from astropy.table import Table,Column,QTable
@@ -325,26 +326,22 @@ class topcatcross(asymphr):
         #np.savetxt('n147wfcam.csv',crosscat,delimiter=',')
         
         t=QTable()
-        t['index'] = index
+        t['index_no'] = index
         t['ra'] = ra*u.deg
         t['dec'] = dec*u.deg
         
         t.write(self.filename+'crosscat.fits',overwrite=True)
         
-    def read_crossed_csv(self,filename):
+    def read_crossed_csv(self,crossfile):
         
         
-        self.filename = filename
+        self.crossfile = crossfile
         
-        file  = open(filename,'r')
+        crossed = pd.read_csv(crossfile)
         
-        #delimiter specified, since csv file being read in
+        print(crossed.index_no)
         
-        crossdata = np.genfromtxt(file,delimiter = ',',missing_values='',filling_values=np.nan)
-        
-        file.close()
-        #array assigned as data object
-        self.crossdata = crossdata
+        return crossed
         
 
         
@@ -463,16 +460,72 @@ def plot_crossmatch_cmd(target,cross_indices):
     
     plt.show()
 
-def plot_topmatch_cmd(gaiacross):
+def plot_topmatch_cmd(gaiacross,incrossfile):
+    crossed_table = gaiacross.read_crossed_csv(incrossfile)
+    
+    #noise cut
+    
+    for i in range(len(crossed_table.pmra)):
+        if crossed_table.astrometric_excess_noise_sig[i] > 2:
+            crossed_table.index_no[i]=np.nan
+            
+    #parallax cut
+            
+    #for i in range(len(crossed_table.pmra)):
+        #if crossed_table.parallax_over_error[i] < 1:
+            ##crossed_table.index_no[i]=np.nan
+            
+    #proper motion cut
+            
+    for i in range(len(crossed_table.pmra)):
+        if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
+            crossed_table.index_no[i]=np.nan
+    print(crossed_table.pmra)
+    
     gaiacross.loadascii()
     gaiacross.ciscuts()
     gaiacross.extinction()
+    
+    crossjmag = []
+    crosshmag = []
+    crosskmag = []
+    
+    print(crossed_table.index_no)
+    
+    for j in crossed_table.index_no:
+        
+        if np.isnan(j) == True:
+            
+            continue
+        
+        else:
+            crossjmag.append(gaiacross.jmag[int(j)])
+            crosskmag.append(gaiacross.kmag[int(j)])
+            crosshmag.append(gaiacross.hmag[int(j)])
+        
+    crossjmag = np.array(crossjmag)
+    crosshmag = np.array(crosshmag)
+    crosskmag = np.array(crosskmag)    
+                
+    plt.rc('axes',labelsize=20)
+    
+    plt.scatter(gaiacross.jmag-gaiacross.kmag,gaiacross.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+    plt.scatter(crossjmag-crosskmag,crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
+    
+    plt.gca().invert_yaxis()
+    plt.ylabel('$K_0$')
+    plt.xlabel('$(J-K)_0$')
+    plt.legend()
+    
+    plt.show()
+    
+    
     
 
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
-n147 = asymphr('lot_n147.unique',0)
+#n147 = asymphr('lot_n147.unique',0)
 #kj_cmd(n147)
 #colour_colour(n147)
 #spatial_plot(n147)
@@ -545,3 +598,6 @@ n147 = asymphr('lot_n147.unique',0)
 #gaian205.crossmatch(n205)
 
 n147cross = topcatcross('lot_n147.unique',0)
+plot_topmatch_cmd(n147cross,'crossedn147.csv')
+
+
