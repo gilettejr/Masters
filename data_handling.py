@@ -12,6 +12,8 @@ import pandas as pd
 from astropy import units as u
 from astropy.io import fits
 from astropy.table import Table,Column,QTable
+from astropy.coordinates import SkyCoord
+from dustmaps.sfd import SFDQuery
 #class for reading in and plotting ascii file data
 
 class asymphr:
@@ -205,9 +207,23 @@ class asymphr:
             self.kmag = self.kmag - 0.019
             
             
-        
-        
+    def sbsextinction(self):
+        ra = self.ra
+        dec = self.dec
+            
+        coords=SkyCoord(ra,dec,unit='deg',frame='icrs')
+        sfd=SFDQuery()
+        sfdred=sfd(coords)
            
+        jext = sfdred * 0.709
+        hext = sfdred * 0.449
+        kext = sfdred * 0.302
+        
+        self.jmag=self.jmag - jext
+        self.hmag=self.hmag - hext
+        self.kmag=self.kmag - kext
+            
+            
         #print(np.shape((data[:,7:])))
         #print(np.shape(data))
         #xj = data[:,7]
@@ -358,7 +374,7 @@ def kj_cmd(target):
     
     target.loadascii()
     target.ciscuts()
-    target.extinction()
+    target.sbsextinction()
     
     #plot formatted and labelled
     
@@ -525,8 +541,8 @@ def plot_topmatch_cmd(gaiacross,incrossfile):
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 
-#n147 = asymphr('lot_n147.unique',0)
-#kj_cmd(n147)
+n147 = asymphr('lot_n147.unique',0)
+kj_cmd(n147)
 #colour_colour(n147)
 #spatial_plot(n147)
 ##spatial_plot_standard(n147,8.300500,48.508750)
@@ -597,7 +613,7 @@ def plot_topmatch_cmd(gaiacross,incrossfile):
 #gaian205.loadfile()
 #gaian205.crossmatch(n205)
 
-n147cross = topcatcross('lot_n147.unique',0)
-plot_topmatch_cmd(n147cross,'crossedn147.csv')
+#n147cross = topcatcross('lot_n147.unique',0)
+#plot_topmatch_cmd(n147cross,'crossedn147.csv')
 
 
