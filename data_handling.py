@@ -9,6 +9,7 @@ Created on Sat Sep 28 15:14:03 2019
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 from astropy import units as u
 from astropy.io import fits
 from astropy.table import Table,Column,QTable
@@ -36,6 +37,9 @@ class asymphr:
         self.pmdecunc = 0
         self.raunc = 0.0005
         self.decunc = 0.0005
+        
+        self.xi=0
+        self.eta=0
         
         #required file opened
         
@@ -238,6 +242,50 @@ class asymphr:
         self.jmag=self.jmag - jext
         self.hmag=self.hmag - hext
         self.kmag=self.kmag - kext
+        
+    def sbsextinction_on_frame(self,target):
+        
+        ra = target.ra
+        dec = target.dec
+        
+        #astropy skycoord called, units and frame set
+        
+        coords=SkyCoord(ra,dec,unit='deg',frame='icrs')
+        
+        #sfd map chosen
+        
+        sfd=SFDQuery()
+        
+        #E(B-V) for each star loaded into array from map
+        
+        sfdred=sfd(coords)
+           
+        #corrections from table 6 of Schlafly and Finkbeiner(2011) made
+        
+        jext = sfdred * 0.709
+        hext = sfdred * 0.449
+        kext = sfdred * 0.302
+        
+        #extinction corrections carried out on class attributes
+        
+        target.jmag=target.jmag - jext
+        target.hmag=target.hmag - hext
+        target.kmag=target.kmag - kext
+        
+        
+    def create_tangent_coords(self,tangentra,tangentdec):
+        
+        ra = np.radians(self.ra)
+        dec = np.radians(self.dec)
+        tanra = np.radians(tangentra)
+        tandec = np.radians(tangentdec)
+        
+        xi = (np.cos(dec)*np.sin(ra-tanra))/(np.sin(dec)*np.sin(tandec) + np.cos(dec)*np.cos(tandec)*np.cos(ra-tanra))
+        
+        eta = (np.sin(dec)*np.cos(tandec)-np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))/(np.sin(dec)*np.cos(tandec)+np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))
+        
+        self.xi = xi * (180/np.pi)
+        self.eta = eta * (180/np.pi)
             
             
         #print(np.shape((data[:,7:])))
@@ -339,19 +387,40 @@ class topcatcross(asymphr):
                 self.kerr[i] = np.nan
                 self.kcis[i] = np.nan
                 
+                
     def make_dataframe(self):
-        wfdat=pd.DataFrame({'ra':self.ra,'dec':self.dec,'xj':self.xj,'yj':self.yj,'jmag':self.jmag,'jerr':self.jerr,'jcls':self.jcis,'xh':self.xh,'yh':self.yh,'hmag':self.hmag,'herr':self.herr,'hcls':self.hcis,'xk':self.xk,'yk':self.yk,'kmag':self.kmag,'kerr':self.kerr,'kcls':self.kcis})
+        wfdat=pd.DataFrame({'ra':self.ra,'dec':self.dec,'xj':self.xj,'yj':self.yj,'jmag':self.jmag,'jerr':self.jerr,'jcls':self.jcis,'xh':self.xh,'yh':self.yh,'hmag':self.hmag,'herr':self.herr,'hcls':self.hcis,'xk':self.xk,'yk':self.yk,'kmag':self.kmag,'kerr':self.kerr,'kcls':self.kcis,'xi':self.xi,'eta':self.eta})
         self.wfdat=wfdat
     
     
     #returns dataframe only containing C star candidates based on hard colour cuts
     def select_C_stars(self,j_kcut,h_kcut,minkmag):
-        d=self.wfdat
+        d=self.wfdat.copy()
+        
+        
         for i in range(len(d.ra)):
             
             if d.jmag[i]-d.kmag[i] < j_kcut or d.hmag[i]-d.kmag[i] < h_kcut or d.kmag[i] > minkmag:
                 d.loc[i]=np.nan
+                
+                
         return d
+                
+    def select_M_stars(self,j_kmin,j_kmax,minkmag):
+        
+        d=self.wfdat.copy()
+        
+        for i in range(len(d.ra)):
+            
+            if j_kmin > d.jmag[i]-d.kmag[i] or j_kmax < d.jmag[i]-d.kmag[i] or d.kmag[i] > minkmag:
+
+                d.loc[i]=np.nan
+
+                
+        return d
+            
+                        
+        
             
 
 class graphs:
@@ -429,6 +498,41 @@ class graphs:
         plt.scatter(xi,eta,s=3,marker = 'o',alpha=0.5)
         plt.gca().set_ylabel(r'$\eta$')
         plt.gca().set_xlabel(r'$\xi$')
+        
+    def agb_spatial_plot_standard(self,ctarget,mtarget,tangentra,tangentdec):
+        
+        #target.loadascii()
+        #target.ciscuts()
+        
+        cra = np.radians(ctarget.ra)
+        cdec = np.radians(ctarget.dec)
+        tanra = np.radians(tangentra)
+        tandec = np.radians(tangentdec)
+        
+        mra = np.radians(mtarget.ra)
+        mdec = np.radians(mtarget.dec)
+
+        
+        cxi = (np.cos(cdec)*np.sin(cra-tanra))/(np.sin(cdec)*np.sin(tandec) + np.cos(cdec)*np.cos(tandec)*np.cos(cra-tanra))
+        
+        ceta = (np.sin(cdec)*np.cos(tandec)-np.cos(cdec)*np.sin(tandec)*np.cos(cra-tanra))/(np.sin(cdec)*np.cos(tandec)+np.cos(cdec)*np.sin(tandec)*np.cos(cra-tanra))
+        
+        mxi = (np.cos(mdec)*np.sin(mra-tanra))/(np.sin(mdec)*np.sin(tandec) + np.cos(mdec)*np.cos(tandec)*np.cos(mra-tanra))
+        
+        meta = (np.sin(mdec)*np.cos(tandec)-np.cos(mdec)*np.sin(tandec)*np.cos(mra-tanra))/(np.sin(mdec)*np.cos(tandec)+np.cos(mdec)*np.sin(tandec)*np.cos(mra-tanra))
+        
+        cxi = cxi * (180/np.pi)
+        ceta = ceta *(180/np.pi)
+        
+        mxi = mxi * (180/np.pi)
+        meta = meta *(180/np.pi)
+        plt.style.use('seaborn-white')
+        plt.rc('axes',labelsize = 20)
+        plt.scatter(cxi,ceta,s=3,marker = 'o',alpha=0.5,label='C-Star Candidates')
+        plt.scatter(mxi,meta,s=3,marker = 'o',alpha=0.5,label='M-Star Candidates')
+        plt.gca().set_ylabel(r'$\eta$')
+        plt.gca().set_xlabel(r'$\xi$')
+        plt.legend()
 
     def colour_colour(self,target):
         
@@ -504,12 +608,71 @@ class graphs:
         plt.legend()
         
         plt.show()
+        
+    def isoplot(self,target,iso):
+        
+        for i in range(len(iso.jmag)):
+            if iso.label[i]!=3:
+
+#m32.loadascii()
+#m32.ciscuts()
+#gaiam32 = gaiadata('m32gaiapm.csv')
+#gaiam32.loadfile()
+#gaiam32.crossmatch(m32)
+
+#n205.loadascii()
+##n205.ciscuts()
+#gaian205 = gaiadata('ngc205gaiapm.csv')
+                iso.jmag[i]=np.nan
+                iso.hmag[i]=np.nan
+                iso.kmag[i]=np.nan
+        
+        plt.rc('axes',labelsize=20)
+        
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+        plt.scatter(iso.jmag-iso.kmag,iso.kmag,s=1,marker='o',label='Padova isochrones')
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$(J-K)_0$')
+        plt.legend()
+        
+        plt.show()
+        
+    def surface_density_plot(self,cframe,mframe):
+        sns.set_style("white")
+        sns.kdeplot(mframe.xi.dropna(), mframe.eta.dropna())
+        plt.show()
 
 #function cuts gaia data and sets class attributes for crossmatched data
 
 class isochrone_plots(asymphr):
     
-    def readisocrhones(self,iso1,iso2):
+    def readisochrones(self):
+        
+        def apparent(M,dguess):
+            m = M + 5*np.log10(dguess/10)
+            return m
+        
+        
+            
+            
+        
+
+        distance=self.distance
+        
+        isos=pd.DataFrame({'label':self.data[:,9],'jmag':self.data[:,30],'hmag':self.data[:,31],'kmag':self.data[:,32]})
+        
+        isos.jmag=apparent(isos.jmag,distance)
+        isos.hmag=apparent(isos.hmag,distance)
+        isos.kmag=apparent(isos.kmag,distance)
+        
+        self.label=isos.label
+        self.jmag=isos.jmag
+        self.hmag=isos.hmag
+        self.kmag=isos.kmag
+        
+        
 
 
 def topmatch(gaiacross,incrossfile):
@@ -536,7 +699,7 @@ def topmatch(gaiacross,incrossfile):
     
     gaiacross.loadascii()
     gaiacross.ciscuts()
-    gaiacross.sbsextinction()
+    #gaiacross.sbsextinction()
     
     crossjmag = []
     crosshmag = []
@@ -663,17 +826,36 @@ plotter=graphs()
 #gaian205.loadfile()
 #gaian205.crossmatch(n205)
     
-#run these to remove crossmatched stars
+#run these to remove crossmatched stars and separate out m and c stars
 
 n147cross = topcatcross('lot_n147.unique',0)
 topmatch(n147cross,'crossedn147.csv')
 n147cross.delete_crossed_points()
-
+n147cross.create_tangent_coords(8.300500,48.50850)
 n147cross.make_dataframe()
-c_stars=n147cross.select_C_stars(1.34,0.44,18)
-plotter.spatial_plot_standard(c_stars,8.300500,48.508750)
+#c_stars=n147cross.select_C_stars(1.34,0.44,18)
+m_stars=n147cross.select_M_stars(1.0,1.34,18)
 
+#n147cross.sbsextinction_on_frame(c_stars)
+#n147cross.sbsextinction_on_frame(m_stars)
 
-#plot_topmatch_cmd(n147cross)
+#plotter.kj_cmd(m_stars)
+#plotter.spatial_plot_standard(c_stars,8.300500,48.508750)
+#plotter.spatial_plot_standard(m_stars,8.300500,48.508750)
+#plotter.agb_spatial_plot_standard(c_stars,m_stars,8.300500,48.508750)
+plotter.surface_density_plot(0,m_stars)
 
+#plotter.plot_topmatch_cmd(n147cross)
+#n147=asymphr('lot_n147.unique',0)
+#n147.loadascii()
+#n147.ciscuts()
+#n147.sbsextinction()
+
+#n147iso=isochrone_plots('ngc147isos.asc',780000)
+#n147iso.readisochrones()
+
+#isoplotter=graphs()
+
+#isoplotter.isoplot(n147,n147iso)
+#print(n147iso.data)
 
