@@ -640,8 +640,23 @@ class graphs:
         plt.show()
         
     def surface_density_plot(self,cframe,mframe):
+        
+        #xi=np.concatenate((cframe.xi.dropna(),mframe.xi.dropna()),axis=0)
+        #eta=np.concatenate((cframe.eta.dropna(),mframe.eta.dropna()),axis=0)
+        
         sns.set_style("white")
-        sns.kdeplot(mframe.xi.dropna(), mframe.eta.dropna())
+        sns.kdeplot(mframe.xi.dropna(), mframe.eta.dropna(),n_levels=300,gridsize=500)
+        #sns.kdeplot(cframe.xi.dropna(),cframe.eta.dropna(),n_levels=30,gridsize=500)
+        #sns.kdeplot(xi,eta,n_levels=30,gridsize=500)
+        
+        plt.show()
+        
+    def k_luminosity_function(self,cframe,mframe):
+        sns.set_style('white')
+        sns.distplot(cframe.kmag.dropna(),label='C-Stars')
+        sns.distplot(mframe.kmag.dropna(),label='M-Stars')
+        #sns.set(xlabel='$K_0$',ylabel='Number of AGB stars')
+        plt.legend()
         plt.show()
 
 #function cuts gaia data and sets class attributes for crossmatched data
@@ -673,63 +688,63 @@ class isochrone_plots(asymphr):
         self.kmag=isos.kmag
         
         
+class crossed_data:
 
-
-def topmatch(gaiacross,incrossfile):
-    crossed_table = gaiacross.read_crossed_csv(incrossfile)
-    
-    #noise cut
-    
-    for i in range(len(crossed_table.pmra)):
-        if crossed_table.astrometric_excess_noise_sig[i] > 2:
-            crossed_table.index_no[i]=np.nan
-            
-    #parallax cut
-            
-    for i in range(len(crossed_table.pmra)):
-        if crossed_table.parallax_over_error[i] < 1:
-            crossed_table.index_no[i]=np.nan
-            
-    #proper motion cut
-            
-    for i in range(len(crossed_table.pmra)):
-        if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
-            crossed_table.index_no[i]=np.nan
-    #print(crossed_table.pmra)
-    
-    gaiacross.loadascii()
-    gaiacross.ciscuts()
-    #gaiacross.sbsextinction()
-    
-    crossjmag = []
-    crosshmag = []
-    crosskmag = []
-    
-    #print(crossed_table.index_no)
-    
-    for j in crossed_table.index_no:
+    def topmatch(self,gaiacross,incrossfile):
+        crossed_table = gaiacross.read_crossed_csv(incrossfile)
         
-        if np.isnan(j) == True:
+        #noise cut
+        
+        for i in range(len(crossed_table.pmra)):
+            if crossed_table.astrometric_excess_noise_sig[i] > 2:
+                crossed_table.index_no[i]=np.nan
+                
+        #parallax cut
+                
+        for i in range(len(crossed_table.pmra)):
+            if crossed_table.parallax_over_error[i] < 1:
+                crossed_table.index_no[i]=np.nan
+                
+        #proper motion cut
+                
+        for i in range(len(crossed_table.pmra)):
+            if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
+                crossed_table.index_no[i]=np.nan
+        #print(crossed_table.pmra)
+        
+        gaiacross.loadascii()
+        gaiacross.ciscuts()
+        #gaiacross.sbsextinction()
+        
+        crossjmag = []
+        crosshmag = []
+        crosskmag = []
+        
+        #print(crossed_table.index_no)
+        
+        for j in crossed_table.index_no:
             
-            continue
+            if np.isnan(j) == True:
+                
+                continue
+            
+            else:
+                j=(int(j))
+                crossjmag.append(gaiacross.jmag[j])
+                crosskmag.append(gaiacross.kmag[j])
+                crosshmag.append(gaiacross.hmag[j])
+            
+        crossjmag = np.array(crossjmag)
+        crosshmag = np.array(crosshmag)
+        crosskmag = np.array(crosskmag)
         
-        else:
-            j=(int(j))
-            crossjmag.append(gaiacross.jmag[j])
-            crosskmag.append(gaiacross.kmag[j])
-            crosshmag.append(gaiacross.hmag[j])
+        gaiacross.crossjmag=crossjmag
+        gaiacross.crosshmag=crosshmag
+        gaiacross.crosskmag=crosskmag
         
-    crossjmag = np.array(crossjmag)
-    crosshmag = np.array(crosshmag)
-    crosskmag = np.array(crosskmag)
     
-    gaiacross.crossjmag=crossjmag
-    gaiacross.crosshmag=crosshmag
-    gaiacross.crosskmag=crosskmag
-    
-
-    
-    gaiacross.index_nos=crossed_table.index_no
+        
+        gaiacross.index_nos=crossed_table.index_no
 
 
         
@@ -750,7 +765,7 @@ def topmatch(gaiacross,incrossfile):
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
     
 #as of 29/10, run loadascii, ciscuts, sbsextinction before kj_cmd and colour_colour graphing functions
-plotter=graphs()
+#plotter=graphs()
 #n147 = asymphr('lot_n147.unique',0)
 ##n147.loadascii()
 #n147.ciscuts()
@@ -827,14 +842,46 @@ plotter=graphs()
 #gaian205.crossmatch(n205)
     
 #run these to remove crossmatched stars and separate out m and c stars
+class run_subsets:
+    def __init__(self,agb):
+        
 
-n147cross = topcatcross('lot_n147.unique',0)
-topmatch(n147cross,'crossedn147.csv')
-n147cross.delete_crossed_points()
-n147cross.create_tangent_coords(8.300500,48.50850)
-n147cross.make_dataframe()
-#c_stars=n147cross.select_C_stars(1.34,0.44,18)
-m_stars=n147cross.select_M_stars(1.0,1.34,18)
+        rmatch=crossed_data()
+        n147cross = topcatcross('lot_n147.unique',0)
+        rmatch.topmatch(n147cross,'crossedn147.csv')
+        n147cross.delete_crossed_points()
+        n147cross.create_tangent_coords(8.300500,48.50850)
+        n147cross.make_dataframe()
+        
+        if agb=='m':
+        
+        
+            selection=n147cross.select_M_stars(1.0,1.34,18)
+    
+        elif agb=='c':
+            
+            selection=n147cross.select_C_stars(1.34,0.44,18)
+    
+            
+            
+        else:
+            print('Not a valid class')
+        
+        n147cross.sbsextinction_on_frame(selection)
+        self.subset=selection
+        
+def plot_spatial(mframe,cframe):
+    plotter=graphs()
+    plotter.agb_spatial_plot_standard(cframe,mframe,8.300500,48.50850)
+    
+runm=run_subsets('m')
+runc=run_subsets('c')
+
+plot_spatial(runm.subset,runc.subset)
+        
+        
+
+    
 
 #n147cross.sbsextinction_on_frame(c_stars)
 #n147cross.sbsextinction_on_frame(m_stars)
@@ -843,7 +890,8 @@ m_stars=n147cross.select_M_stars(1.0,1.34,18)
 #plotter.spatial_plot_standard(c_stars,8.300500,48.508750)
 #plotter.spatial_plot_standard(m_stars,8.300500,48.508750)
 #plotter.agb_spatial_plot_standard(c_stars,m_stars,8.300500,48.508750)
-plotter.surface_density_plot(0,m_stars)
+#plotter.surface_density_plot(0,m_stars)
+#plotter.k_luminosity_function(c_stars,m_stars)
 
 #plotter.plot_topmatch_cmd(n147cross)
 #n147=asymphr('lot_n147.unique',0)
