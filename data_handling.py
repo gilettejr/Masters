@@ -763,86 +763,38 @@ class crossed_data:
 
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
+class basic_graphs:
+    def __init__(self):
+        n147=asymphr('lot_n147.unique',0)
+        n147.loadascii()
+        n147.ciscuts()
+        n147.sbsextinction()
+        self.n147=n147
+        
+    def plot_cmd(self):
+        plotter=graphs()
+        plotter.kj_cmd(self.n147)
+        
+    def plot_cc(self):
+        plotter=graphs()
+        plotter.colour_colour(self.n147)
     
-#as of 29/10, run loadascii, ciscuts, sbsextinction before kj_cmd and colour_colour graphing functions
-#plotter=graphs()
-#n147 = asymphr('lot_n147.unique',0)
-##n147.loadascii()
-#n147.ciscuts()
-#n147.sbsextinction()
-#plotter.kj_cmd(n147)
+    def plot_spatial(self):
+        plotter=graphs()
+        plotter.spatial_plot(self.n147)
+        
 
-#spatial_plot(n147)
-##spatial_plot_standard(n147,8.300500,48.508750)
-
-#n185 = asymphr('lot_n185.unique',0)
-#kj_cmd(n185)
-#spatial_plot(n185)
-#spatial_plot_standard(n185,9.741542,48.337389)
-
-#n205 = asymphr('N205_two.asc',0)
-#kj_cmd(n205)
-#spatial_plot(n205)
-#spatial_plot_standard(n205,10.092000,41.685306)
-
-#m32 = asymphr('M32.asc',0)
-#kj_cmd(m32)
-#spatial_plot(m32)
-#spatial_plot_standard(m32,10.674300,40.865287)
+class topcatstuff:
     
-#n147 = asymphr('lot_n147.unique',0)
-#n147.loadascii()
-#n147.ciscuts()
-
-
-#gaian147 = gaiadata('ngc147gaiapm.csv')
-#gaian147.loadfile()
-#gaian147.crossmatch(n147)
-
-
-##n147cross_cat = np.load('gaia_crossmatch_all_cull.npy')
-#plot_crossmatch_cmd(n147,n147cross_cat)
-
-#n185cross_cat = np.load('gaia_crossmatch_ngc185gaiapm.csv.npy')
-#plot_crossmatch_cmd(n185,n185cross_cat)
-
-#m32cross_cat = np.load('gaia_crossmatch_m32gaiapm.csv.npy')
-#plot_crossmatch_cmd(m32,m32cross_cat)
-
-#n205cross_cat = np.load('gaia_crossmatch_ngc205gaiapm.csv.npy')
-#plot_crossmatch_cmd(n205,n205cross_cat)
-
-#print(gaian147.data)
-
-#standard coordinates
-    
-#n147cross=topcatcross('lot_n147.unique',0)
-#n147cross.loadascii()
-#n147cross.ciscuts()
-#n147cross.load_ascii_to_cross()
-
-
-
-#n185.loadascii()
-#n185.ciscuts()
-#gaian185 = gaiadata('ngc185gaiapm.csv')
-#gaian185.loadfile()
-#gaian185.crossmatch(n185)
-
-#m32.loadascii()
-#m32.ciscuts()
-#gaiam32 = gaiadata('m32gaiapm.csv')
-#gaiam32.loadfile()
-#gaiam32.crossmatch(m32)
-
-#n205.loadascii()
-##n205.ciscuts()
-#gaian205 = gaiadata('ngc205gaiapm.csv')
-#gaian205.loadfile()
-#gaian205.crossmatch(n205)
+    def fit_for_cross(self):
+        n147cross=topcatcross('lot_n147.unique',0)
+        n147cross.loadascii()
+        n147cross.ciscuts()
+        n147cross.load_ascii_to_cross()
+        
     
 #run these to remove crossmatched stars and separate out m and c stars
-class run_subsets:
+class make_subsets:
     def __init__(self,agb):
         
 
@@ -870,40 +822,29 @@ class run_subsets:
         n147cross.sbsextinction_on_frame(selection)
         self.subset=selection
         
-def plot_spatial(mframe,cframe):
-    plotter=graphs()
-    plotter.agb_spatial_plot_standard(cframe,mframe,8.300500,48.50850)
+
+  
+class run_both:
+
+    def __init__(self):
+        runm=make_subsets('m')
+        runc=make_subsets('c')
+        self.mframe=runm.subset
+        self.cframe=runc.subset
+      
+    def plot_both_spatial(self):
+        plotter=graphs()
+        plotter.agb_spatial_plot_standard(self.cframe,self.mframe,8.300500,48.50850)
     
-runm=run_subsets('m')
-runc=run_subsets('c')
-
-plot_spatial(runm.subset,runc.subset)
-        
-        
-
+    def plot_both_lum(self):
+        plotter=graphs()
+        plotter.k_luminosity_function(self.cframe,self.mframe)
     
+    def plot_both_contour(self):
+        plotter=graphs()
+        plotter.surface_density_plot(self.cframe,self.mframe)
+    
+r=basic_graphs()
+r.plot_cc()
 
-#n147cross.sbsextinction_on_frame(c_stars)
-#n147cross.sbsextinction_on_frame(m_stars)
-
-#plotter.kj_cmd(m_stars)
-#plotter.spatial_plot_standard(c_stars,8.300500,48.508750)
-#plotter.spatial_plot_standard(m_stars,8.300500,48.508750)
-#plotter.agb_spatial_plot_standard(c_stars,m_stars,8.300500,48.508750)
-#plotter.surface_density_plot(0,m_stars)
-#plotter.k_luminosity_function(c_stars,m_stars)
-
-#plotter.plot_topmatch_cmd(n147cross)
-#n147=asymphr('lot_n147.unique',0)
-#n147.loadascii()
-#n147.ciscuts()
-#n147.sbsextinction()
-
-#n147iso=isochrone_plots('ngc147isos.asc',780000)
-#n147iso.readisochrones()
-
-#isoplotter=graphs()
-
-#isoplotter.isoplot(n147,n147iso)
-#print(n147iso.data)
 
