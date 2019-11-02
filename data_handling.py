@@ -533,6 +533,19 @@ class graphs:
         plt.gca().set_ylabel(r'$\eta$')
         plt.gca().set_xlabel(r'$\xi$')
         plt.legend()
+        plt.show()
+
+    def single_agb_spatial_plot_standard(self,target):
+        
+        plt.style.use('seaborn-white')
+        plt.rc('axes',labelsize=20)
+        plt.scatter(target.xi,target.eta,marker='o',alpha=0.5,size=3)
+        plt.gca().set_ylabel(r'$\eta$')
+        plt.gca().set_xlabel(r'$\xi$')
+        plt.gca().invert_xaxis()
+        plt.show()
+        
+        
 
     def colour_colour(self,target):
         
@@ -649,6 +662,14 @@ class graphs:
         #sns.kdeplot(cframe.xi.dropna(),cframe.eta.dropna(),n_levels=30,gridsize=500)
         #sns.kdeplot(xi,eta,n_levels=30,gridsize=500)
         
+    def single_surface_density_plot(self,frame):
+        
+        #xi=np.concatenate((cframe.xi.dropna(),mframe.xi.dropna()),axis=0)
+        #eta=np.concatenate((cframe.eta.dropna(),mframe.eta.dropna()),axis=0)
+        
+        sns.set_style("white")
+        sns.kdeplot(frame.xi.dropna(), frame.eta.dropna(),n_levels=300,gridsize=500)
+
         plt.show()
         
     def k_luminosity_function(self,cframe,mframe):
@@ -657,6 +678,11 @@ class graphs:
         sns.distplot(mframe.kmag.dropna(),label='M-Stars')
         #sns.set(xlabel='$K_0$',ylabel='Number of AGB stars')
         plt.legend()
+        plt.show()
+        
+    def single_k_luminosity_function(self,frame):
+        sns.set_style('dark')
+        sns.distplot(frame.kmag.dropna())
         plt.show()
 
 #function cuts gaia data and sets class attributes for crossmatched data
@@ -795,12 +821,16 @@ class topcatstuff:
     
 #run these to remove crossmatched stars and separate out m and c stars
 class make_subsets:
-    def __init__(self,agb):
+    def __init__(self,agb,galaxy):
         
 
         rmatch=crossed_data()
+        
+        if 
+        
         n147cross = topcatcross('lot_n147.unique',0)
         rmatch.topmatch(n147cross,'crossedn147.csv')
+        
         n147cross.delete_crossed_points()
         n147cross.create_tangent_coords(8.300500,48.50850)
         n147cross.make_dataframe()
@@ -844,7 +874,28 @@ class run_both:
         plotter=graphs()
         plotter.surface_density_plot(self.cframe,self.mframe)
     
-r=basic_graphs()
-r.plot_cc()
+class run_single:
+    
+    def __init__(self,subset):
+        if subset !='m' and subset !='c':
+            print('run_single argument must be string(m) or string(c)')
+        run=make_subsets(subset)
+        
+        self.frame=run.subset
+        
+    def plot_single_spatial(self):
+        plotter=graphs()
+        plotter.single_agb_spatial_plot_standard(self.frame)
+        
+    def plot_single_lum(self):
+        plotter=graphs()
+        plotter.single_k_luminosity_function(self.frame)
+        
+        
+    def plot_single_contour(self):
+        plotter=graphs()
+        plotter.single_surface_density_plot(self.frame)
+        
 
-
+r=run_single('c')
+r.plot_single_lum()
