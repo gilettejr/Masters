@@ -790,8 +790,22 @@ class crossed_data:
 
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 class basic_graphs:
-    def __init__(self):
-        n147=asymphr('lot_n147.unique',0)
+    def __init__(self,galaxy):
+        if galaxy=='ngc147':
+        
+            n147 = asymphr('lot_n147.unique',0)
+
+            
+        elif galaxy== 'ngc185':
+            n147 = asymphr('lot_n185.unique',0)
+
+            
+        elif galaxy=='ngc205':
+            n147 = asymphr('N205_two.asc',0)
+
+            
+        elif galaxy=='m32':
+            n147=topcatcross('M32.asc',0)
         n147.loadascii()
         n147.ciscuts()
         n147.sbsextinction()
@@ -826,10 +840,25 @@ class make_subsets:
 
         rmatch=crossed_data()
         
-        if 
+        if galaxy=='ngc147':
         
-        n147cross = topcatcross('lot_n147.unique',0)
-        rmatch.topmatch(n147cross,'crossedn147.csv')
+            n147cross = topcatcross('lot_n147.unique',0)
+            rmatch.topmatch(n147cross,'crossedn147.csv')
+            
+        elif galaxy== 'ngc185':
+            n147cross = topcatcross('lot_n185.unique',0)
+            rmatch.topmatch(n147cross,'crossedn185.csv')
+            
+        elif galaxy=='ngc205':
+            n147cross=topcatcross('N205_two.asc',0)
+            rmatch.topmatch(n147cross,'crossedn205.csv')
+            
+        elif galaxy=='m32':
+            n147cross==topcatcross('M32.asc',0)
+            rmatch.topmatch(n147cross,'crossedm32.csv')
+        
+        
+            
         
         n147cross.delete_crossed_points()
         n147cross.create_tangent_coords(8.300500,48.50850)
@@ -856,9 +885,9 @@ class make_subsets:
   
 class run_both:
 
-    def __init__(self):
-        runm=make_subsets('m')
-        runc=make_subsets('c')
+    def __init__(self,galaxy):
+        runm=make_subsets('m',galaxy)
+        runc=make_subsets('c',galaxy)
         self.mframe=runm.subset
         self.cframe=runc.subset
       
@@ -876,10 +905,10 @@ class run_both:
     
 class run_single:
     
-    def __init__(self,subset):
+    def __init__(self,galaxy,subset):
         if subset !='m' and subset !='c':
             print('run_single argument must be string(m) or string(c)')
-        run=make_subsets(subset)
+        run=make_subsets(subset,galaxy)
         
         self.frame=run.subset
         
@@ -897,5 +926,5 @@ class run_single:
         plotter.single_surface_density_plot(self.frame)
         
 
-r=run_single('c')
-r.plot_single_lum()
+r=basic_graphs('m32')
+r.plot_cc()
