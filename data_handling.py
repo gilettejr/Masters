@@ -627,38 +627,74 @@ class graphs:
         for i in range(len(iso.jmag)):
             if iso.label[i]!=3:
 
-#m32.loadascii()
-#m32.ciscuts()
-#gaiam32 = gaiadata('m32gaiapm.csv')
-#gaiam32.loadfile()
-#gaiam32.crossmatch(m32)
-
-#n205.loadascii()
-##n205.ciscuts()
-#gaian205 = gaiadata('ngc205gaiapm.csv')
                 iso.jmag[i]=np.nan
                 iso.hmag[i]=np.nan
                 iso.kmag[i]=np.nan
         
         plt.rc('axes',labelsize=20)
-        print(iso.age)
         indices=[]
         for i in range(1,len(iso.age)):
-            if iso.age[i]!=iso.age[i-1]:
+            if iso.age[i]!=iso.age[i-1] or iso.z[i]!=iso.z[i-1]:
                 indices.append(i)
  
                 
         
-        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data',color='black')
+
+        
+        plt.plot(iso.jmag[:indices[0]]-iso.kmag[:indices[0]],iso.kmag[:indices[0]],label='log(t) = ' + str(iso.age[0]) + ', Z = ' +str(iso.z[0]))
+        
+        for i in range(len(indices)):
+            if i==(len(indices)-1):
+                plt.plot(iso.jmag[indices[i]:]-iso.kmag[indices[i]:],iso.kmag[indices[i]:],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
+                break
+            else:
+                plt.plot(iso.jmag[indices[i]:indices[i+1]]-iso.kmag[indices[i]:indices[i+1]],iso.kmag[indices[i]:indices[i+1]],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$(J-K)_0$')
+        plt.legend()
+        
+        plt.show()
+        
+    def colour_hist(self,cframe,mframe):
+        sns.distplot(cframe.jmag.dropna()-cframe.kmag.dropna(),label='C-Stars')
+        sns.distplot(mframe.jmag.dropna()-mframe.kmag.dropna(),label='M-Stars')
+        plt.legend()
+        plt.show()
+    
+    def single_colour_hist(self,frame):
+        sns.distplot(frame.jmag.dropna()-frame.kmag.dropna(),kde=False)
+        plt.legend()
+        plt.show()
+        
+    def overlay_agb_tip(self,iso):
+        
+        for i in range(len(iso.jmag)):
+            if iso.label[i]!=8:
+
+                iso.jmag[i]=np.nan
+                iso.hmag[i]=np.nan
+                iso.kmag[i]=np.nan
+        
+        indices=[]
+        for i in range(1,len(iso.age)):
+            if iso.age[i]!=iso.age[i-1] or iso.z[i]!=iso.z[i-1]:
+                indices.append(i)
+ 
+                
+        
+
         
         
         
         for i in range(len(indices)):
             if i==(len(indices)-1):
-                plt.plot(iso.jmag[indices[i]:]-iso.kmag[indices[i]:],iso.kmag[indices[i]:],label='Padova isochrones with log(t) = ' + str(iso.age[indices[i]]))
+                plt.plot(iso.jmag[indices[i]:]-iso.kmag[indices[i]:],iso.kmag[indices[i]:],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
                 break
             else:
-                plt.plot(iso.jmag[indices[i]:indices[i+1]]-iso.kmag[indices[i]:indices[i+1]],iso.kmag[indices[i]:indices[i+1]],label='Padova isochrones with log(t) = ' + str(iso.age[indices[i]]))
+                plt.plot(iso.jmag[indices[i]:indices[i+1]]-iso.kmag[indices[i]:indices[i+1]],iso.kmag[indices[i]:indices[i+1]],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
@@ -800,6 +836,7 @@ class basic_graphs:
             
         elif galaxy=='m32':
             n147=topcatcross('M32.asc',0)
+            
         n147.loadascii()
         n147.ciscuts()
         n147.sbsextinction()
@@ -896,6 +933,10 @@ class run_both:
     def plot_both_contour(self):
         plotter=graphs()
         plotter.surface_density_plot(self.cframe,self.mframe)
+
+    def plot_both_colour_hist(self):
+        plotter=graphs()
+        plotter.colour_hist(self.cframe,self.mframe)
     
 class run_single:
     
@@ -919,10 +960,17 @@ class run_single:
         plotter=graphs()
         plotter.single_surface_density_plot(self.frame)
         
-class run_isos(basic_graphs):
+    def plot_single_colour_hist(self):
+        plotter=graphs()
+        plotter.single_colour_hist(self.frame)
+        
+
+            
+        
+class import_isos(basic_graphs):
     
     
-    def plot_iso_cmd(self,isofile):
+    def read_in(self,isofile):
         
         def apparent(M,dguess):
             m = M + 5*np.log10(dguess/10)
@@ -935,26 +983,45 @@ class run_isos(basic_graphs):
         
         i=asymphr(isofile,0)
         
-        isos=pd.DataFrame({'age':i.data[:,2],'label':i.data[:,9],'jmag':i.data[:,27],'hmag':i.data[:,28],'kmag':i.data[:,29]})
+        isos=pd.DataFrame({'z':i.data[:,0],'age':i.data[:,2],'label':i.data[:,9],'jmag':i.data[:,27],'hmag':i.data[:,28],'kmag':i.data[:,29]})
         
         isos.jmag=apparent(isos.jmag,distance)
         isos.hmag=apparent(isos.hmag,distance)
         isos.kmag=apparent(isos.kmag,distance)
         
+        i.z=isos.z
         i.age=isos.age
         i.label=isos.label
         i.jmag=isos.jmag
         i.hmag=isos.hmag
         i.kmag=isos.kmag
         
+        self.i=i
+        #plotter=graphs()
+        #plotter.isoplot(self.n147,i)
+        
+class run_isos:
+    
+    def __init__(self,galaxy,isofile):
+        imp=import_isos(galaxy)
+        imp.read_in(isofile)
+        self.imp=imp
+        
+    def plot_iso_cmd(self):
         plotter=graphs()
-        plotter.isoplot(self.n147,i)
+        plotter.isoplot(self.imp.n147,self.imp.i)
+        
+    def plot_iso_overlay(self):
+        plotter=graphs()
+        plotter.overlay_agb_tip(self.imp.i)
         
 
         
+
         
     
         
 
-r=run_isos('ngc147')
-r.plot_iso_cmd('ngc147isos.asc')
+f=run_isos('ngc147','ngc147isos.asc')
+f.plot_iso_cmd()
+
