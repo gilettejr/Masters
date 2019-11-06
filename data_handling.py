@@ -641,9 +641,24 @@ class graphs:
                 iso.kmag[i]=np.nan
         
         plt.rc('axes',labelsize=20)
+        print(iso.age)
+        indices=[]
+        for i in range(1,len(iso.age)):
+            if iso.age[i]!=iso.age[i-1]:
+                indices.append(i)
+ 
+                
         
         plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
-        plt.scatter(iso.jmag-iso.kmag,iso.kmag,s=1,marker='o',label='Padova isochrones')
+        
+        
+        
+        for i in range(len(indices)):
+            if i==(len(indices)-1):
+                plt.plot(iso.jmag[indices[i]:]-iso.kmag[indices[i]:],iso.kmag[indices[i]:],label='Padova isochrones with log(t) = ' + str(iso.age[indices[i]]))
+                break
+            else:
+                plt.plot(iso.jmag[indices[i]:indices[i+1]]-iso.kmag[indices[i]:indices[i+1]],iso.kmag[indices[i]:indices[i+1]],label='Padova isochrones with log(t) = ' + str(iso.age[indices[i]]))
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
@@ -687,31 +702,7 @@ class graphs:
 
 #function cuts gaia data and sets class attributes for crossmatched data
 
-class isochrone_plots(asymphr):
-    
-    def readisochrones(self):
-        
-        def apparent(M,dguess):
-            m = M + 5*np.log10(dguess/10)
-            return m
-        
-        
-            
-            
-        
 
-        distance=self.distance
-        
-        isos=pd.DataFrame({'label':self.data[:,9],'jmag':self.data[:,30],'hmag':self.data[:,31],'kmag':self.data[:,32]})
-        
-        isos.jmag=apparent(isos.jmag,distance)
-        isos.hmag=apparent(isos.hmag,distance)
-        isos.kmag=apparent(isos.kmag,distance)
-        
-        self.label=isos.label
-        self.jmag=isos.jmag
-        self.hmag=isos.hmag
-        self.kmag=isos.kmag
         
         
 class crossed_data:
@@ -791,6 +782,9 @@ class crossed_data:
 #statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
 class basic_graphs:
     def __init__(self,galaxy):
+        
+        self.galaxy=galaxy
+        
         if galaxy=='ngc147':
         
             n147 = asymphr('lot_n147.unique',0)
@@ -925,6 +919,42 @@ class run_single:
         plotter=graphs()
         plotter.single_surface_density_plot(self.frame)
         
+class run_isos(basic_graphs):
+    
+    
+    def plot_iso_cmd(self,isofile):
+        
+        def apparent(M,dguess):
+            m = M + 5*np.log10(dguess/10)
+            return m
+        
+        if self.galaxy=='ngc147':
+            self.distance=780000
+        
+        distance=self.distance
+        
+        i=asymphr(isofile,0)
+        
+        isos=pd.DataFrame({'age':i.data[:,2],'label':i.data[:,9],'jmag':i.data[:,27],'hmag':i.data[:,28],'kmag':i.data[:,29]})
+        
+        isos.jmag=apparent(isos.jmag,distance)
+        isos.hmag=apparent(isos.hmag,distance)
+        isos.kmag=apparent(isos.kmag,distance)
+        
+        i.age=isos.age
+        i.label=isos.label
+        i.jmag=isos.jmag
+        i.hmag=isos.hmag
+        i.kmag=isos.kmag
+        
+        plotter=graphs()
+        plotter.isoplot(self.n147,i)
+        
 
-r=basic_graphs('m32')
-r.plot_cc()
+        
+        
+    
+        
+
+r=run_isos('ngc147')
+r.plot_iso_cmd('ngc147isos.asc')
