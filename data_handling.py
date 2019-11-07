@@ -109,7 +109,10 @@ class asymphr:
         self.kerr = kerr
         self.kcis = kcis
         
+        #index array created for crossmmatching functionality
+        
         index = []
+        
         
         for i in range(len(self.ra)):
             index.append(i)
@@ -147,7 +150,9 @@ class asymphr:
                 self.kmag[i] = np.nan
                 self.kerr[i] = np.nan
                 self.kcis[i] = np.nan
-                
+    
+    #redundant function with less rigourous cuts than ciscuts
+    
     def lowciscuts(self):
         
         #loop to read cis number for each object
@@ -242,8 +247,13 @@ class asymphr:
         self.jmag=self.jmag - jext
         self.hmag=self.hmag - hext
         self.kmag=self.kmag - kext
-        
+    
+    #method to carry out star by star extinction on object using SFD dustmap. Takes object target as input
+    
     def sbsextinction_on_frame(self,target):
+        
+        
+        #attributes set as variables for ease
         
         ra = target.ra
         dec = target.dec
@@ -272,35 +282,36 @@ class asymphr:
         target.hmag=target.hmag - hext
         target.kmag=target.kmag - kext
         
-        
+    #method for adding xi and eta tanget co-ordinates as attributes
+    
     def create_tangent_coords(self,tangentra,tangentdec):
+        
+        #ra and dec attributes converted to variables in radians
         
         ra = np.radians(self.ra)
         dec = np.radians(self.dec)
+        
+        #tangent co-ordinates also converted to radians
+        
         tanra = np.radians(tangentra)
         tandec = np.radians(tangentdec)
         
+        #conversion for xi carried out
+        
         xi = (np.cos(dec)*np.sin(ra-tanra))/(np.sin(dec)*np.sin(tandec) + np.cos(dec)*np.cos(tandec)*np.cos(ra-tanra))
         
+        #conversion for eta carried out
+        
         eta = (np.sin(dec)*np.cos(tandec)-np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))/(np.sin(dec)*np.cos(tandec)+np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))
+        
+        #co-ordinates converted to degrees and set as attributes
         
         self.xi = xi * (180/np.pi)
         self.eta = eta * (180/np.pi)
             
             
-        #print(np.shape((data[:,7:])))
-        #print(np.shape(data))
-        #xj = data[:,7]
-        #print(xj)
-        
-#fileformat: na,na,na,na,na,na,na,x,y,jmag,jerr,jcis,x,y,hmag,herr,hcis,x,y,kmag,kerr,kcis
 
-#class for reading gaia data tables in format described below
-
-#gaiaformat:sourceid,ra,raunc,dec,decunc,pmra,pmraunc,pmdec,pmdecunc
         
-#class initialises by loading datafile into numpy array
-#basically redundant due to topcat crossmatching, will still include as used to verify topcat crossmatch quality
 
 
 
@@ -453,8 +464,8 @@ class graphs:
         
         #ngc147 cut
         
-        plt.axvline(x=1.34,linestyle=':',color='black')
-        plt.axhline(y=18,linestyle=':',color='black')
+        #plt.axvline(x=1.34,linestyle=':',color='black')
+        #plt.axhline(y=18,linestyle=':',color='black')
     
 
     #function plots spatial distribution from asymphr class execution
@@ -654,6 +665,7 @@ class graphs:
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
         plt.xlabel('$(J-K)_0$')
+        plt.ylim(20,12)
         plt.legend()
         
         plt.show()
@@ -685,9 +697,10 @@ class graphs:
  
                 
         
+        
 
         
-        
+        plt.plot(iso.jmag[:indices[0]]-iso.kmag[:indices[0]],iso.kmag[:indices[0]],label='log(t) = ' + str(iso.age[0]) + ', Z = ' +str(iso.z[0]))
         
         for i in range(len(indices)):
             if i==(len(indices)-1):
@@ -837,10 +850,20 @@ class basic_graphs:
         elif galaxy=='m32':
             n147=topcatcross('M32.asc',0)
             
+        elif galaxy=='andromeda':
+            n147=topcatcross('lot_m31.unique',0)
+            
+        else:
+            print('That is not a galaxy')
+        
+
+        
         n147.loadascii()
         n147.ciscuts()
         n147.sbsextinction()
+        
         self.n147=n147
+
         
     def plot_cmd(self):
         plotter=graphs()
@@ -857,8 +880,8 @@ class basic_graphs:
 
 class topcatstuff:
     
-    def fit_for_cross(self):
-        n147cross=topcatcross('lot_n147.unique',0)
+    def fit_for_cross(self,file):
+        n147cross=topcatcross(file,0)
         n147cross.loadascii()
         n147cross.ciscuts()
         n147cross.load_ascii_to_cross()
@@ -885,7 +908,7 @@ class make_subsets:
             rmatch.topmatch(n147cross,'crossedn205.csv')
             
         elif galaxy=='m32':
-            n147cross==topcatcross('M32.asc',0)
+            n147cross=topcatcross('M32.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
         
         
@@ -921,10 +944,31 @@ class run_both:
         runc=make_subsets('c',galaxy)
         self.mframe=runm.subset
         self.cframe=runc.subset
-      
+        self.galaxy=galaxy
     def plot_both_spatial(self):
         plotter=graphs()
-        plotter.agb_spatial_plot_standard(self.cframe,self.mframe,8.300500,48.50850)
+        
+        galaxy=self.galaxy
+        
+        if galaxy=='ngc147':
+            tra=8.3005
+            tdec=48.50873889
+        elif galaxy=='ngc185':
+            tra=9.74154167
+            tdec=48.33737778
+        
+        elif galaxy=='ngc205':
+            tra=10.09189356
+            tdec=41.68541564
+            
+        elif galaxy=='m32':
+            tra=10.67427083
+            tdec=40.86516944
+        else:
+            print('Not a valid object')
+        
+        
+        plotter.agb_spatial_plot_standard(self.cframe,self.mframe,tra,tdec)
     
     def plot_both_lum(self):
         plotter=graphs()
@@ -937,6 +981,56 @@ class run_both:
     def plot_both_colour_hist(self):
         plotter=graphs()
         plotter.colour_hist(self.cframe,self.mframe)
+        
+    def c_over_m(self):
+        m_no=[]
+        for i in self.mframe.kmag:
+            if np.isnan(i)==False:
+                m_no.append(0)
+        c_no=[]   
+        for j in self.cframe.kmag:
+            if np.isnan(j)==False:
+                c_no.append(0)
+        
+        C=len(c_no)
+        M=len(m_no)
+        
+        ratio = C/M
+        
+        print(ratio)
+        
+    def c_over_m_grad(self,border,tra,tdec):
+        
+        in_m_no=[]
+        for i in range(len(self.mframe.kmag)):
+            if np.isnan(self.mframe.ra[i])==False and np.sqrt((self.mframe.ra[i]-tra)**2+(self.mframe.dec[i]-tdec)**2) < border/3600 :
+                in_m_no.append(0)
+        in_c_no=[]   
+        for i in range(len(self.mframe.kmag)):
+            if np.isnan(self.cframe.ra[i])==False and np.sqrt((self.cframe.ra[i]-tra)**2+(self.cframe.dec[i]-tdec)**2) < border/3600 :
+                in_c_no.append(0)
+        
+        in_C=len(in_c_no)
+        in_M=len(in_m_no)
+        
+        out_m_no=[]
+        for i in range(len(self.mframe.kmag)):
+            if np.isnan(self.mframe.ra[i])==False and np.sqrt((self.mframe.ra[i]-tra)**2+(self.mframe.dec[i]-tdec)**2) > border/3600 :
+                out_m_no.append(0)
+        out_c_no=[]  
+        
+        for i in range(len(self.mframe.kmag)):
+            if np.isnan(self.cframe.ra[i])==False and np.sqrt((self.cframe.ra[i]-tra)**2+(self.cframe.dec[i]-tdec)**2) > border/3600 :
+                out_c_no.append(0)
+        
+        out_C=len(out_c_no)
+        out_M=len(out_m_no)
+        
+        print(in_C/in_M)
+        print(out_C/out_M)
+        
+
+        
     
 class run_single:
     
@@ -1019,9 +1113,12 @@ class run_isos:
         
 
         
-    
+def main():  
         
+    r=basic_graphs('andromeda')
+    r.plot_cmd()
 
-f=run_isos('ngc147','ngc147isos.asc')
-f.plot_iso_cmd()
+main()
 
+
+#radial gradiant: C/M = 0.22 <70'', C/M = 0.26 >70''
