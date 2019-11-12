@@ -347,8 +347,8 @@ class topcatcross(asymphr):
         
         t.write(self.filename+'crosscat.fits',overwrite=True)
         
-    #method to deal with csv file from topcat crossmatching
-    #pretty much redundant as topmatch function does much the same thing
+    #method to simply read in and return csv file of crossed data from topcat
+    #used in the crossed_data.topmatch() method
         
     def read_crossed_csv(self,crossfile):
         
@@ -367,7 +367,12 @@ class topcatcross(asymphr):
     #function for deleting all crossmatched points
     
     def delete_crossed_points(self):
+        
+        #locates each crossed point using index identifiers from crossmatched gaia file
+        
         for i in self.index_nos:
+        
+            #ignores NaN values
             
             if np.isnan(i)==True:
                 
@@ -376,9 +381,11 @@ class topcatcross(asymphr):
             
             else:
                 
+                #index numbers are floats, need to be converted to integers for identifying array elements
+                
                 i=int(i)
                 
-
+                #entire row of data wiped if crossmatched with gaia data
                 
                 self.ra[i] = np.nan
                 self.dec[i] = np.nan
@@ -397,59 +404,81 @@ class topcatcross(asymphr):
                 self.kmag[i] = np.nan
                 self.kerr[i] = np.nan
                 self.kcis[i] = np.nan
-                
+                self.eta[i] = np.nan
+                self.xi[i]=np.nan
+            
+    #method for converting rows of data into pandas dataframe for ease
                 
     def make_dataframe(self):
+        
+        #dataframe created
+        
         wfdat=pd.DataFrame({'ra':self.ra,'dec':self.dec,'xj':self.xj,'yj':self.yj,'jmag':self.jmag,'jerr':self.jerr,'jcls':self.jcis,'xh':self.xh,'yh':self.yh,'hmag':self.hmag,'herr':self.herr,'hcls':self.hcis,'xk':self.xk,'yk':self.yk,'kmag':self.kmag,'kerr':self.kerr,'kcls':self.kcis,'xi':self.xi,'eta':self.eta})
+        
+        #attribute dataframe set
+        
         self.wfdat=wfdat
     
     
     #returns dataframe only containing C star candidates based on hard colour cuts
+    
     def select_C_stars(self,j_kcut,h_kcut,minkmag):
+        
+        #copy made to protect original dataframe
+        
         d=self.wfdat.copy()
         
+        #hard colour cuts recursively made
         
         for i in range(len(d.ra)):
             
             if d.jmag[i]-d.kmag[i] < j_kcut or d.hmag[i]-d.kmag[i] < h_kcut or d.kmag[i] > minkmag:
+                
+                #entire row wiped if conditions not met
+                
                 d.loc[i]=np.nan
                 
+        #altered dataframe copy returned        
                 
         return d
-                
+    
+    #returns dataframe only containing M star candidates based on hard colour cuts
+    
     def select_M_stars(self,j_kmin,j_kmax,minkmag):
         
+        #copy made to protect original dataframe
+        
         d=self.wfdat.copy()
+        
+        #hard colour cuts recursively made
         
         for i in range(len(d.ra)):
             
             if j_kmin > d.jmag[i]-d.kmag[i] or j_kmax < d.jmag[i]-d.kmag[i] or d.kmag[i] > minkmag:
+                
+                #entire row wiped if conditions not met
 
                 d.loc[i]=np.nan
 
-                
+        #altered dataframe copy returned
+        
         return d
             
                         
         
-            
+#class containing methods for plotting various graphs from analysis output
 
 class graphs:
     
         
-        
+    #method produces K-J CMD, taking in asymphr or asympher inherited objects as input    
 
     def kj_cmd(self,target):
     
     #figure created
         
         plt.figure()
-        
-        #class methods carried out to load data and perform cuts and extinction corrections
-        
-        #target.loadascii()
-        ##target.ciscuts()
-        #target.sbsextinction()
+                
         
         #plot formatted and labelled
         
@@ -468,16 +497,12 @@ class graphs:
         #plt.axhline(y=18,linestyle=':',color='black')
     
 
-    #function plots spatial distribution from asymphr class execution
+    #method plots spatial distribution from target class or dataframe
 
     def spatial_plot(self,target):
         
-        plt.figure()
-        
         #cuts performed, extinction correction not necessary
         
-        #target.loadascii()
-        #target.ciscuts()
         
         #plot formatted and labelled
         
@@ -487,28 +512,51 @@ class graphs:
         plt.xlabel('Dec(J200)/degrees')
         plt.title(target.filename + ' Spatial Plot')
         plt.show()
+        
+    #method plots raw camera xy pixel positions from target class or dataframe
+        
+    def xy_spatial_plot(self,target):
+
+        
+        plt.rc('axes',labelsize=20)
+        plt.scatter(target.xj,target.yj,s=3,marker='o',alpha=0.5)
+        plt.ylabel('Y')
+        plt.xlabel('X')
+        plt.title(target.filename + ' J-band pixel co-ordinates')
+    
+    #method plots spatial distribution of target class/dataframe using tangent co-ordinates
     
     def spatial_plot_standard(self,target,tangentra,tangentdec):
         
         #target.loadascii()
         #target.ciscuts()
         
+        #co=ordinates converted fro degrees to radians
+        
         ra = np.radians(target.ra)
         dec = np.radians(target.dec)
         tanra = np.radians(tangentra)
         tandec = np.radians(tangentdec)
         
+        #tangent co-ordinates xi and eta constructed
+        
         xi = (np.cos(dec)*np.sin(ra-tanra))/(np.sin(dec)*np.sin(tandec) + np.cos(dec)*np.cos(tandec)*np.cos(ra-tanra))
         
         eta = (np.sin(dec)*np.cos(tandec)-np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))/(np.sin(dec)*np.cos(tandec)+np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))
+        
+        #tangent co-ordinates converted back from radians into degrees
         
         xi = xi * (180/np.pi)
         eta = eta *(180/np.pi)
         
         plt.rc('axes',labelsize = 20)
         plt.scatter(xi,eta,s=3,marker = 'o',alpha=0.5)
+        plt.gca().invert_xaxis()
         plt.gca().set_ylabel(r'$\eta$')
         plt.gca().set_xlabel(r'$\xi$')
+        
+    #method plots tangent point co-ordinate spatial distribution of two subsets of stars
+    #process is simply duplicated version of method spatial_plot_standard for two subsets
         
     def agb_spatial_plot_standard(self,ctarget,mtarget,tangentra,tangentdec):
         
@@ -543,8 +591,13 @@ class graphs:
         plt.scatter(mxi,meta,s=3,marker = 'o',alpha=0.5,label='M-Star Candidates')
         plt.gca().set_ylabel(r'$\eta$')
         plt.gca().set_xlabel(r'$\xi$')
+        plt.gca().invert_xaxis()
         plt.legend()
         plt.show()
+        
+    #method for plotting single subset spatial distribution in tangent co-ordinates
+    #can only be used once target.xi and target.eta attributes have already been set using the 
+    #asymphr().make_tangent_coords method
 
     def single_agb_spatial_plot_standard(self,target):
         
@@ -556,7 +609,7 @@ class graphs:
         plt.gca().invert_xaxis()
         plt.show()
         
-        
+    #method for plotting colour-colour diagram from target object/subset
 
     def colour_colour(self,target):
         
@@ -571,12 +624,13 @@ class graphs:
         #plot formatted and labelled
         
         plt.rc('axes',labelsize = 20)
+        #graph is in the format: (j-k)/(h-k)
         plt.scatter(target.hmag - target.kmag,target.jmag-target.kmag,s=1,marker=',',alpha = 0.5)
         plt.ylabel('(J-$K)_0$')
         plt.xlabel('(H-$K)_0$')
         plt.title(target.filename + 'Colour-colour diagram')
         
-        #line for ngc147 hard C cut, Y-J sohn et al.
+        #line for ngc147 hard colour C cut, Y-J sohn et al.
         
         plt.axvline(x=0.44,linestyle=':',color='black')
         plt.axhline(y=1.34,linestyle=':',color='black')
@@ -585,7 +639,7 @@ class graphs:
     
         plt.show()
     
-    #redundant, replaces with plot_topmatch_cmd
+    #redundant, replaced by plot_topmatch_cmd
     
     def plot_crossmatch_cmd(self,target,cross_indices):
         
@@ -616,7 +670,10 @@ class graphs:
         plt.legend()
         
         plt.show()
-        
+    
+    #plots crossmatched data from gaia DR2 with uncrossmatched data in CMD
+    #seperates the two subsets and labels before graphig
+    
     def plot_topmatch_cmd(self,cross):
                     
         plt.rc('axes',labelsize=20)
@@ -632,10 +689,18 @@ class graphs:
         plt.legend()
         
         plt.show()
-        
+    
+    #plots cmd with overlaid isochrones from iso asc file as input to method
+    #specifically for looking at TRGB region on CMD
+    
     def isoplot(self,target,iso):
         
+        #truncates isochrones to only show RGB region
+        
         for i in range(len(iso.jmag)):
+            
+            #label=3 is the identifier for RGB phase
+            
             if iso.label[i]!=3:
 
                 iso.jmag[i]=np.nan
@@ -643,53 +708,108 @@ class graphs:
                 iso.kmag[i]=np.nan
         
         plt.rc('axes',labelsize=20)
+        
+        #this section is written so that isochrones of populations with different
+        #metallicities and/or ages or seperated and not treated as one continuous line
+        
+        #list created to keep track of age or metallicity changes in the isochrones
         indices=[]
+        
+        #loop must begin at i=1 since array element i-1 is used
+        
         for i in range(1,len(iso.age)):
+            
+            #code searches for age or z change from one element to the next
+            #appends the element number to indices to mark when this occurs
+            
             if iso.age[i]!=iso.age[i-1] or iso.z[i]!=iso.z[i-1]:
                 indices.append(i)
  
-                
+        #standard cmd of target object/subset is plotted
         
         plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data',color='black')
 
+        #first isochrone must be plotted independently, as it is not included in subsequent plotting loop
+        #plots isochrone data from start of file until the lowest value in indices, which is the 0th element
         
         plt.plot(iso.jmag[:indices[0]]-iso.kmag[:indices[0]],iso.kmag[:indices[0]],label='log(t) = ' + str(iso.age[0]) + ', Z = ' +str(iso.z[0]))
         
+        #rest of the isochrones are plotted recursively, using the indices list to
+        #define when a new isochrone is begun
+        
         for i in range(len(indices)):
+            
+            #conditional added to treat the final isochrone and terminating loop
+            #not including this results in list index out of bounds error
+            
             if i==(len(indices)-1):
+                
+                #final isochrone plotted from highest indices element to the end of isochrone set file
+                
                 plt.plot(iso.jmag[indices[i]:]-iso.kmag[indices[i]:],iso.kmag[indices[i]:],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
                 break
             else:
+                
+                #plots all isochrone lines between the first and last elements defined by indices
+                
                 plt.plot(iso.jmag[indices[i]:indices[i+1]]-iso.kmag[indices[i]:indices[i+1]],iso.kmag[indices[i]:indices[i+1]],label='log(t) = ' + str(iso.age[indices[i]]) + ', Z = ' +str(iso.z[indices[i]]))
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
         plt.xlabel('$(J-K)_0$')
+        
+        #ylim set since data is irrelevant above y=20
+        
         plt.ylim(20,12)
         plt.legend()
         
         plt.show()
         
+    #plots simple histogram based on j-k colour of two subset dataframes, most likely to be C and M stars    
+        
     def colour_hist(self,cframe,mframe):
+        
+        #dropna() is crucial here as seaborn doesn't seem to like NaN values
+        
         sns.distplot(cframe.jmag.dropna()-cframe.kmag.dropna(),label='C-Stars')
         sns.distplot(mframe.jmag.dropna()-mframe.kmag.dropna(),label='M-Stars')
         plt.legend()
         plt.show()
+        
+    #plots j-k colour histogram from one subset dataframe
     
     def single_colour_hist(self,frame):
+        
+        #again, dropna() required for plotting dataframe
+        #is it really that hard for seaborn not to plot it???????
+
+        #kde=True/False changes whether this plots a fitted and normalised
+        #histogram or just a bog standard one
+        
         sns.distplot(frame.jmag.dropna()-frame.kmag.dropna(),kde=False)
         plt.legend()
         plt.show()
-        
+    
+    #plots agb section of isochrones
+    #method is just for overlaying so can be used with another plot in this class
+    
     def overlay_agb_tip(self,iso):
         
+        #truncates isochrones to only include AGB
+        
         for i in range(len(iso.jmag)):
+            
+            #label=8 is the AGB phase in padova isochrones
+            
             if iso.label[i]!=8:
 
                 iso.jmag[i]=np.nan
                 iso.hmag[i]=np.nan
                 iso.kmag[i]=np.nan
         
+        #same method for seperating out the different isochrones in the set
+        #as in self.isoplot
+        
         indices=[]
         for i in range(1,len(iso.age)):
             if iso.age[i]!=iso.age[i-1] or iso.z[i]!=iso.z[i-1]:
@@ -716,99 +836,142 @@ class graphs:
         
         plt.show()
         
+    #plots spatial distribution of c and m agb stars as a contour density diagram
+        
     def surface_density_plot(self,cframe,mframe):
         
-        #xi=np.concatenate((cframe.xi.dropna(),mframe.xi.dropna()),axis=0)
-        #eta=np.concatenate((cframe.eta.dropna(),mframe.eta.dropna()),axis=0)
+        
+        
+
         
         sns.set_style("white")
-        sns.kdeplot(mframe.xi.dropna(), mframe.eta.dropna(),n_levels=300,gridsize=500)
-        #sns.kdeplot(cframe.xi.dropna(),cframe.eta.dropna(),n_levels=30,gridsize=500)
-        #sns.kdeplot(xi,eta,n_levels=30,gridsize=500)
+        
+        #m and c star dataframe tangent co-ordinates merged into combined 1d dataframes
+        #also deleted NaN values in this process
+        xi=np.concatenate((cframe.xi.dropna(),mframe.xi.dropna()),axis=0)
+        eta=np.concatenate((cframe.eta.dropna(),mframe.eta.dropna()),axis=0)
+        
+        #contour density plotted
+        
+        sns.kdeplot(xi,eta,n_levels=30,gridsize=500)
+    
+    #plots spatial distribution of stars from frame dataframe
         
     def single_surface_density_plot(self,frame):
         
-        #xi=np.concatenate((cframe.xi.dropna(),mframe.xi.dropna()),axis=0)
-        #eta=np.concatenate((cframe.eta.dropna(),mframe.eta.dropna()),axis=0)
         
         sns.set_style("white")
+        
+        #contour density plot created, again deleting NaN values
+        
         sns.kdeplot(frame.xi.dropna(), frame.eta.dropna(),n_levels=300,gridsize=500)
 
         plt.show()
-        
+    
+    #plots K band luminosity function of two subsets, most likely C and M stars
+    
     def k_luminosity_function(self,cframe,mframe):
         sns.set_style('white')
+        
+        #histograms of K band magnitudes plotted, again deleting NaN values
+        
         sns.distplot(cframe.kmag.dropna(),label='C-Stars')
         sns.distplot(mframe.kmag.dropna(),label='M-Stars')
         #sns.set(xlabel='$K_0$',ylabel='Number of AGB stars')
         plt.legend()
         plt.show()
-        
+    
+    #plots K band luminosity function of one subset
+    
     def single_k_luminosity_function(self,frame):
         sns.set_style('dark')
+        #plots K band magnitude histogram, deleting NaN values
         sns.distplot(frame.kmag.dropna())
         plt.show()
 
 #function cuts gaia data and sets class attributes for crossmatched data
 
-
-        
+#class for dealing with identifying data crossmatched by topcat
         
 class crossed_data:
-
+    
+    #method sets crossmatched data from incrossfile to gaiacross class attributes
+    #gaiacross must be topcatcross object
+    
     def topmatch(self,gaiacross,incrossfile):
+        
+        #method called to read in crossmatched file as dataframe
+        
         crossed_table = gaiacross.read_crossed_csv(incrossfile)
         
-        #noise cut
+        #noise cut based on Gaia DR2 values and recomendations from the Gaia project website
         
         for i in range(len(crossed_table.pmra)):
             if crossed_table.astrometric_excess_noise_sig[i] > 2:
                 crossed_table.index_no[i]=np.nan
                 
-        #parallax cut
+        #parallax cut to remove any badly  measured parallaxes
                 
         for i in range(len(crossed_table.pmra)):
             if crossed_table.parallax_over_error[i] < 1:
                 crossed_table.index_no[i]=np.nan
                 
-        #proper motion cut
+        #proper motion cut to remove any proper motions pointing to distant objects (i.e. pm~0)
                 
         for i in range(len(crossed_table.pmra)):
             if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
                 crossed_table.index_no[i]=np.nan
-        #print(crossed_table.pmra)
+
         
+        #WFCAM data is loaded and the usual cuts made
         gaiacross.loadascii()
         gaiacross.ciscuts()
-        #gaiacross.sbsextinction()
+        
+        #extinction is not carried out at this stage since cuts are to be made before
+        #extinction corrections
+        
+        #lists for crossmatched photometric data created
         
         crossjmag = []
         crosshmag = []
         crosskmag = []
         
-        #print(crossed_table.index_no)
+        #index_no column used to identify gaia crossmatched data
         
         for j in crossed_table.index_no:
+            
+            #Nan values skipped
             
             if np.isnan(j) == True:
                 
                 continue
             
             else:
+                
+                #index number elements are initially floats, must be converted to integers
+                #for list indexing
+                
                 j=(int(j))
+                
+                #empty crossmatching lists filled with crossmatched data
+                
                 crossjmag.append(gaiacross.jmag[j])
                 crosskmag.append(gaiacross.kmag[j])
                 crosshmag.append(gaiacross.hmag[j])
-            
+        
+        #lists converted to numpy arrays
+        
         crossjmag = np.array(crossjmag)
         crosshmag = np.array(crosshmag)
         crosskmag = np.array(crosskmag)
+        
+        #arrays of crossmatched data set as gaiacross attributes
         
         gaiacross.crossjmag=crossjmag
         gaiacross.crosshmag=crosshmag
         gaiacross.crosskmag=crosskmag
         
-    
+        #index numbers also set as attribute for future troubleshooting
         
         gaiacross.index_nos=crossed_table.index_no
 
@@ -828,11 +991,19 @@ class crossed_data:
     
 
 
-#statements for running graphing functions. Galaxy chosen by initialising class before execution of functions
+#class for running graphing functions
+#mainly involves calling the relevant graphs() method after class initialisation
 class basic_graphs:
+    
+    #galaxy defined upon initialisation
+    
     def __init__(self,galaxy):
         
+        #galaxy set as class attribute
+        
         self.galaxy=galaxy
+        
+        #conditional statements used to select correct datafile for the chosen galaxy
         
         if galaxy=='ngc147':
         
@@ -853,32 +1024,49 @@ class basic_graphs:
         elif galaxy=='andromeda':
             n147=topcatcross('lot_m31.unique',0)
             
-        else:
-            print('That is not a galaxy')
+        #error returned if galaxy not recognised 
         
-
+        else:
+            print('That is not a galaxy, enjoy the errors')
+        
+        #data loaded and cls cuts and extinction corrections carried out 
         
         n147.loadascii()
         n147.ciscuts()
         n147.sbsextinction()
         
+        #data set as class attribute for running class methods
+        
         self.n147=n147
-
+        self.plotter=graphs()
+    #uses the graphs().kj_cmd method to plot a CMD using class attribute data
         
     def plot_cmd(self):
-        plotter=graphs()
-        plotter.kj_cmd(self.n147)
-        
+        self.plotter.kj_cmd(self.n147)
+    
+    #uses the graphs().colour_colour method to plot a cc diagram using class attribute data
+    
     def plot_cc(self):
-        plotter=graphs()
-        plotter.colour_colour(self.n147)
+
+        self.plotter.colour_colour(self.n147)
+        
+    #uses the graphs().spatial_plot method to plot a spatial distribution using class attribute data
     
     def plot_spatial(self):
-        plotter=graphs()
-        plotter.spatial_plot(self.n147)
+
+        self.plotter.spatial_plot(self.n147)
         
+    #uses the graphs().xy_spatial_plot method to plot an xy pixel distribution using class attribute data    
+        
+    def plot_xy_spatial(self):
+        self.plotter.xy_spatial_plot(self.n147)
+        
+#class for setting up data before topcat crossmatching
 
 class topcatstuff:
+    
+    #uses topcatcross class methods to convert ra and dec in named
+    #file to decimal degrees, and converts the file from .csv to .fits
     
     def fit_for_cross(self,file):
         n147cross=topcatcross(file,0)
@@ -887,11 +1075,19 @@ class topcatstuff:
         n147cross.load_ascii_to_cross()
         
     
-#run these to remove crossmatched stars and separate out m and c stars
+#class containing methods for separating out classes of star depending on
+#phase or other user defined cuts. Automatically removes stars crossmatched from
+#gaia DR2
 class make_subsets:
-    def __init__(self,agb,galaxy):
+    
+    #class initialised with defined galaxy. Deletes gaia crossmatched data and
+    #converts data into dataframe format, as well as adding tangent co-ordinates
+    #still a work in progress, only works for ngc147 right now!
+    
+    def __init__(self,galaxy):
         
-
+        self.galaxy=galaxy
+        
         rmatch=crossed_data()
         
         if galaxy=='ngc147':
@@ -918,6 +1114,12 @@ class make_subsets:
         n147cross.create_tangent_coords(8.300500,48.50850)
         n147cross.make_dataframe()
         
+        self.n147cross=n147cross
+    
+    def mc(self,agb):
+        
+        n147cross=self.n147cross
+        
         if agb=='m':
         
         
@@ -935,13 +1137,17 @@ class make_subsets:
         n147cross.sbsextinction_on_frame(selection)
         self.subset=selection
         
+    #def rgb(self,xrange,yrange):
+        
 
   
 class run_both:
 
     def __init__(self,galaxy):
-        runm=make_subsets('m',galaxy)
-        runc=make_subsets('c',galaxy)
+        runm=make_subsets(galaxy)
+        runc=make_subsets(galaxy)
+        runm.mc('m')
+        runc.mc('c')
         self.mframe=runm.subset
         self.cframe=runc.subset
         self.galaxy=galaxy
@@ -1026,8 +1232,20 @@ class run_both:
         out_C=len(out_c_no)
         out_M=len(out_m_no)
         
-        print(in_C/in_M)
-        print(out_C/out_M)
+        self.inCM=(in_C/in_M)
+        self.outCM=(out_C/out_M)
+        
+        print(self.inCM)
+        print(self.outCM)
+        
+    def CM_to_FEH(self,CM):
+        
+        FEH=-1.39 -0.47*np.log10(CM)
+        
+        return FEH
+        
+        
+        
         
 
         
@@ -1115,8 +1333,9 @@ class run_isos:
         
 def main():  
         
-    r=basic_graphs('andromeda')
-    r.plot_cmd()
+    r=basic_graphs('ngc147')
+    r.plot_cc()
+
 
 main()
 
