@@ -404,8 +404,8 @@ class topcatcross(asymphr):
                 self.kmag[i] = np.nan
                 self.kerr[i] = np.nan
                 self.kcis[i] = np.nan
-                self.eta[i] = np.nan
-                self.xi[i]=np.nan
+                #self.eta[i] = np.nan
+                #self.xi[i]=np.nan
             
     #method for converting rows of data into pandas dataframe for ease
                 
@@ -465,7 +465,19 @@ class topcatcross(asymphr):
         return d
             
                         
+    def select_rgb_region(self,xmin,xmax,ymin,ymax):
         
+        d=self.wfdat.copy()
+        d.jmag-d.kmag=colour
+        d.kmag=kmag
+        
+        for i in range(len(jmag)):
+            
+            if xmin < colour[i] < xmax and ymin<kmag[i]<ymax:
+                continue
+            else:
+                d.loc[i]=np.nan
+        return d
 #class containing methods for plotting various graphs from analysis output
 
 class graphs:
@@ -770,9 +782,9 @@ class graphs:
     def colour_hist(self,cframe,mframe):
         
         #dropna() is crucial here as seaborn doesn't seem to like NaN values
-        
-        sns.distplot(cframe.jmag.dropna()-cframe.kmag.dropna(),label='C-Stars')
-        sns.distplot(mframe.jmag.dropna()-mframe.kmag.dropna(),label='M-Stars')
+        sns.distplot(mframe.jmag.dropna()-mframe.kmag.dropna(),kde=False,label='M-Stars')
+        sns.distplot(cframe.jmag.dropna()-cframe.kmag.dropna(),kde=False,bins=120,label='C-Stars')
+
         plt.legend()
         plt.show()
         
@@ -1088,7 +1100,12 @@ class make_subsets:
         
         self.galaxy=galaxy
         
+        #object for reading in and deleting crossmatches  initialised
+        
         rmatch=crossed_data()
+        
+        #datafile chosen depending on galaxy. Crossmatched data
+        #identified and read in by rmatch object
         
         if galaxy=='ngc147':
         
@@ -1108,17 +1125,32 @@ class make_subsets:
             rmatch.topmatch(n147cross,'crossedm32.csv')
         
         
-            
+        #crossmathed points deleted
         
         n147cross.delete_crossed_points()
+        
+        #tangent point topcatcross class attributes created
+        
         n147cross.create_tangent_coords(8.300500,48.50850)
+        
+        #dataframe set as topcatcross class attribute
+        
         n147cross.make_dataframe()
+        
+        #topcatcross object set as self class object attribute
         
         self.n147cross=n147cross
     
+    #function for selecting specifically m and c stars based on hard cuts
+    
     def mc(self,agb):
         
+        #attribute object set to variable for ease
+        
         n147cross=self.n147cross
+        
+        #appropriate topcatcross method utilised to take subset data from
+        #wfcat dataframe attribute and select only c/m star candidates
         
         if agb=='m':
         
@@ -1129,32 +1161,73 @@ class make_subsets:
             
             selection=n147cross.select_C_stars(1.34,0.44,18)
     
-            
+        #error printed if neither 'm' nor 'c' is chosen
             
         else:
             print('Not a valid class')
         
+        #extinction carried out after subsets chosen
+        
         n147cross.sbsextinction_on_frame(selection)
+        
+        #subset set as class attribute
+        
         self.subset=selection
         
     #def rgb(self,xrange,yrange):
+    
+    def rgb(self):
         
+        n147cross=self.n147cross
+        n147cross.sbsextinction()
+        
+        selection=n147cross.select_rgb_region()
+        self.subset=selection
+        
+#class containing methods for graphing c and m star data together. 
+class run_cross(make_subsets):
+    
+    def plot_cross_cmd(self):
+        plotter=graphs()
+        plotter.plot_topmatch_cmd(self.n147cross)
 
-  
+
 class run_both:
-
+    
+    #initialising class creates two dataframes of data for m and c stars respectively
+    #fully extinction corrected
+    
     def __init__(self,galaxy):
+        
+        #two make_subsets instances created, one for each star type
+        
         runm=make_subsets(galaxy)
         runc=make_subsets(galaxy)
+        
+        #m and c subsets created
+        
         runm.mc('m')
         runc.mc('c')
+        
+        #subsets and galaxy set to class attributes
+        
         self.mframe=runm.subset
         self.cframe=runc.subset
         self.galaxy=galaxy
+        
+        #plotter object set for plotting graphs
+        
+        self.plotter=graphs()
+        
+    #plots c and m star spatial distribution in tangent point coordinates
+        
     def plot_both_spatial(self):
-        plotter=graphs()
+
+        #galaxy variable read in from class attribute
         
         galaxy=self.galaxy
+        
+        #tangent point coordinates defined depending on galaxy
         
         if galaxy=='ngc147':
             tra=8.3005
@@ -1171,18 +1244,22 @@ class run_both:
             tra=10.67427083
             tdec=40.86516944
         else:
+            
+            #error printed if incorrect galaxy used
+            
             print('Not a valid object')
         
-        
-        plotter.agb_spatial_plot_standard(self.cframe,self.mframe,tra,tdec)
+        #spatial distribution plotted
+        self.plotter.agb_spatial_plot_standard(self.cframe,self.mframe,tra,tdec)
+    
+    #plots agb star luminosity functions
     
     def plot_both_lum(self):
-        plotter=graphs()
-        plotter.k_luminosity_function(self.cframe,self.mframe)
+        self.plotter.k_luminosity_function(self.cframe,self.mframe)
     
     def plot_both_contour(self):
-        plotter=graphs()
-        plotter.surface_density_plot(self.cframe,self.mframe)
+
+        self.plotter.surface_density_plot(self.cframe,self.mframe)
 
     def plot_both_colour_hist(self):
         plotter=graphs()
@@ -1328,13 +1405,18 @@ class run_isos:
         plotter.overlay_agb_tip(self.imp.i)
         
 
-        
+class run_rgb:
+    
+    def __init__(self,galaxy):
+        run=make_subsets(galaxy)
+        run.rgb()
+        self.frame=run.subset
 
         
 def main():  
         
-    r=basic_graphs('ngc147')
-    r.plot_cc()
+    r=run_both('ngc147')
+
 
 
 main()
