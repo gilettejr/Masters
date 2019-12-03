@@ -65,6 +65,14 @@ class topcatcross(asymphr):
         
         #locates each crossed point using index identifiers from crossmatched gaia file
         
+        full_indices=np.arange(len(self.ra))
+        
+        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        
+        self.unindex_nos=unindex_nos
+        
+        
+        
         for i in self.index_nos:
         
             #ignores NaN values
@@ -81,7 +89,7 @@ class topcatcross(asymphr):
                 i=int(i)
                 
                 #entire row of data wiped if crossmatched with gaia data
-                
+                #self.index[i]=np.nan
                 self.ra[i] = np.nan
                 self.dec[i] = np.nan
                 self.xj[i] = np.nan
@@ -102,6 +110,87 @@ class topcatcross(asymphr):
                 #self.eta[i] = np.nan
                 #self.xi[i]=np.nan
             
+            
+        #function for deleting all uncrossmatched points
+    
+    def delete_uncrossed_points(self):
+        
+        #locates each crossed point using index identifiers from crossmatched gaia file
+        
+        for i in self.index_nos:
+            i=int(i)
+        print(self.index_nos)
+        full_indices=np.arange(len(self.ra))
+        print(full_indices)
+        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        self.unindex_nos=unindex_nos
+        print(unindex_nos)
+        
+        for i in unindex_nos:
+        
+            #ignores NaN values
+            
+            if np.isnan(i)==True:
+                
+                continue
+            
+            
+            else:
+                
+                #index numbers are floats, need to be converted to integers for identifying array elements
+                
+                
+                #entire row of data wiped if crossmatched with gaia data
+                #self.index[i]=np.nan
+                self.ra[i] = np.nan
+                self.dec[i] = np.nan
+                self.xj[i] = np.nan
+                self.yj[i] = np.nan
+                self.jmag[i] = np.nan
+                self.jerr[i] = np.nan
+                self.jcis[i] = np.nan
+                self.xh[i] = np.nan
+                self.yh[i] = np.nan
+                self.hmag[i] = np.nan
+                self.herr[i] = np.nan
+                self.hcis[i] = np.nan
+                self.xk[i] = np.nan
+                self.yk[i] = np.nan
+                self.kmag[i] = np.nan
+                self.kerr[i] = np.nan
+                self.kcis[i] = np.nan
+            
+
+    def gaia_viz_cull_points(self,topcatcross,vizcross):
+        
+        cull_index_nos=np.intersect1d(topcatcross.unindex_nos,vizcross.index_nos)
+        
+        full_indices=np.arange(len(self.ra))
+        cull_unindex_nos=np.setdiff1d(full_indices,cull_index_nos)
+        
+        for i in cull_unindex_nos:
+            i=int(i)
+            self.ra[i] = np.nan
+            self.dec[i] = np.nan
+            self.xj[i] = np.nan
+            self.yj[i] = np.nan
+            self.jmag[i] = np.nan
+            self.jerr[i] = np.nan
+            self.jcis[i] = np.nan
+            self.xh[i] = np.nan
+            self.yh[i] = np.nan
+            self.hmag[i] = np.nan
+            self.herr[i] = np.nan
+            self.hcis[i] = np.nan
+            self.xk[i] = np.nan
+            self.yk[i] = np.nan
+            self.kmag[i] = np.nan
+            self.kerr[i] = np.nan
+            self.kcis[i] = np.nan
+        
+                        #self.eta[i] = np.nan
+                        #self.xi[i]=np.nan
+                
     #method for converting rows of data into pandas dataframe for ease
                 
     def make_dataframe(self):
@@ -262,13 +351,55 @@ class crossed_data:
         
         gaiacross.index_nos=crossed_table.index_no
 
-
+    def vizmatch(self,gaiacross,incrossfile):
         
-
+        #method called to read in crossmatched file as dataframe
         
+        crossed_table = gaiacross.read_crossed_csv(incrossfile)
+        
+        #WFCAM data is loaded and the usual cuts made
+        
+        gaiacross.loadascii()
+        gaiacross.ciscuts()
+        
+        #lists for crossmatched photometric data created
+        
+        crossjmag = []
+        crosshmag = []
+        crosskmag = []
 
+        #index_no column used to identify vizier crossmatched data
     
-
+        #set index number to integer for indexing
+    
+        for j in crossed_table.index_no:
+            j=(int(j))
+            
+            crossjmag.append(gaiacross.jmag[j])
+            crosskmag.append(gaiacross.kmag[j])
+            crosshmag.append(gaiacross.hmag[j])
+            
+                #lists converted to numpy arrays
+        
+        crossjmag = np.array(crossjmag)
+        crosshmag = np.array(crosshmag)
+        crosskmag = np.array(crosskmag)
+        
+        #arrays of crossmatched data set as gaiacross attributes
+        
+        gaiacross.crossjmag=crossjmag
+        gaiacross.crosshmag=crosshmag
+        gaiacross.crosskmag=crosskmag
+        
+        #index numbers also set as attribute for future troubleshooting
+        
+        gaiacross.index_nos=crossed_table.index_no
+            
+            
+            
+        #create magnitude arrays to visualise crossmatched points on cmd
+        
+        
 
 
 

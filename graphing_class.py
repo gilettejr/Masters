@@ -26,7 +26,7 @@ class graphs:
         #plot formatted and labelled
         
         plt.rc('axes',labelsize = 20)
-        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 0.5)
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
         plt.xlabel('J-$K_0$')
@@ -225,6 +225,54 @@ class graphs:
         plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
         
         
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$(J-K)_0$')
+        plt.legend()
+        
+        plt.show()
+        
+    #plots crossmatched data from vizier catalogue with uncrossmatched data in cmd
+    #separates two subsets and labels before graphing
+    
+    def plot_vizmatch_cmd(self,cross):
+                    
+        plt.rc('axes',labelsize=20)
+        
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+        plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Vizier IR Catalogue')
+        
+        
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$(J-K)_0$')
+        plt.legend()
+        
+        plt.show()
+        
+    #graphing method to plot cmd from WFCAM data with Gaia crossmatched data subtracted, and Vizier uncrossmatched data subtra
+    def plot_viztop_cmd(self,topcross,vizcross):
+        plt.rc('axes',labelsize=20)
+        
+        
+
+
+
+        plt.scatter(topcross.jmag-topcross.kmag,topcross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data with Gaia DR2 crossmatched data subtracted')
+        plt.scatter(vizcross.jmag-vizcross.kmag,vizcross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Vizier IR Catalogue')
+
+                
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$(J-K)_0$')
+        plt.legend()
+        
+        plt.show()
+        
+    def plot_culled_viztop_cmd(self,cross):
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT data culled from crossmatching with Gaia DR2 and Vizier IR Catalogue')
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')

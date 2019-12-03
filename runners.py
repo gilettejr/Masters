@@ -10,13 +10,89 @@ from asymphr import asymphr
 from graphing_class import graphs
 from subset_utils import make_subsets
 from iso_utils import import_isos
+from crossmatching_utils import topcatcross,crossed_data
 
 
-class run_cross(make_subsets):
+class run_cross:
     
-    def plot_cross_cmd(self):
+    def __init__(self,galaxy):
+        
+        self.galaxy=galaxy
+        
+        #object for reading in and deleting crossmatches  initialised
+        
+        rmatch=crossed_data()
+        
+        #datafile chosen depending on galaxy. Crossmatched data
+        #identified and read in by rmatch object
+        
+        if galaxy=='ngc147':
+        
+            n147topcross = topcatcross('lot_n147.unique',0)
+            n147vizcross=topcatcross('lot_n147.unique',0)
+            n147culled=topcatcross('lot_n147.unique',0)
+            n147culled.loadascii()
+            n147culled.ciscuts()
+            rmatch.topmatch(n147topcross,'crossedn147.csv')
+            rmatch.vizmatch(n147vizcross,'n147_vizcross.csv')
+            
+            
+            
+        elif galaxy== 'ngc185':
+            n147cross = topcatcross('lot_n185.unique',0)
+            rmatch.topmatch(n147cross,'crossedn185.csv')
+            
+        elif galaxy=='ngc205':
+            n147cross=topcatcross('N205_two.asc',0)
+            rmatch.topmatch(n147cross,'crossedn205.csv')
+            
+        elif galaxy=='m32':
+            n147cross=topcatcross('M32.asc',0)
+            rmatch.topmatch(n147cross,'crossedm32.csv')
+        
+        
+        #crossmathed points deleted
+        
+        
+        #tangent point topcatcross class attributes created
+        
+        n147topcross.create_tangent_coords(8.300500,48.50850)
+        
+        #dataframe set as topcatcross class attribute
+        
+        n147topcross.make_dataframe()
+        n147vizcross.make_dataframe()
+        n147culled.make_dataframe()
+        
+        #topcatcross object set as self class object attribute
+        
+        self.n147topcross=n147topcross
+        self.n147vizcross=n147vizcross
+        self.n147culled=n147culled
+    def plot_topcross_cmd(self):
         plotter=graphs()
-        plotter.plot_topmatch_cmd(self.n147cross)
+        plotter.plot_topmatch_cmd(self.n147topcross)
+        
+    def plot_vizcross_cmd(self):
+        plotter=graphs()
+        plotter.plot_vizmatch_cmd(self.n147vizcross)
+        
+    def plot_combined_cmd(self):
+        self.n147topcross.delete_crossed_points()
+        self.n147vizcross.delete_uncrossed_points()
+        plotter=graphs()
+        plotter.plot_viztop_cmd(self.n147topcross,self.n147vizcross)
+        
+    def plot_culled_cmd(self):
+        self.n147topcross.delete_crossed_points()
+        self.n147vizcross.delete_uncrossed_points()     
+        self.n147culled.gaia_viz_cull_points(self.n147topcross,self.n147vizcross)
+        self.n147culled.sbsextinction()
+        
+        plotter=graphs()
+        plotter.plot_culled_viztop_cmd(self.n147culled)
+        
+
 
 
 class run_both:
@@ -90,8 +166,7 @@ class run_both:
         self.plotter.surface_density_plot(self.cframe,self.mframe)
 
     def plot_both_colour_hist(self):
-        plotter=graphs()
-        plotter.colour_hist(self.cframe,self.mframe)
+        self.plotter.colour_hist(self.cframe,self.mframe)
         
     def c_over_m(self):
         m_no=[]

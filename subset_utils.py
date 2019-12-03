@@ -98,11 +98,11 @@ class make_subsets:
             if agb=='m':
                 #parameters chosen using paper and visual inspection of cmd
                 #should also verify with isochrones and other red giant branch finding methods
-                selection=n147cross.select_M_stars(1.03,1.30,0.4,17.8)
+                selection=n147cross.select_M_stars(1.018,1.32,0.4,17.8)
                 
             elif agb=='c':
                 
-                selection=n147cross.select_C_stars(1.30,0.4,17.8)
+                selection=n147cross.select_C_stars(1.32,0.4,17.8)
         
         #extinction carried out after subsets chosen
         
