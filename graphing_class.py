@@ -8,7 +8,11 @@ Created on Wed Nov 13 20:46:42 2019
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import pandas as pd
 from asymphr import asymphr
+from astropy import stats
+from astropy.stats.histogram import knuth_bin_width
+from scipy.stats import gaussian_kde
 #class containing methods for plotting various graphs from analysis output
 
 class graphs:
@@ -380,6 +384,22 @@ class graphs:
         sns.distplot(frame.jmag.dropna()-frame.kmag.dropna(),kde=False)
         plt.legend()
         plt.show()
+        
+    def cmd_kde(self,upper,lower,colour):
+        plt.figure()
+        
+        print(colour)
+        binwidth = stats.knuth_bin_width(colour)
+        kde_data=colour
+        #print(binwidth)
+        bins=np.arange(min(kde_data ), max(kde_data ) + binwidth, binwidth)
+        x_eval = np.linspace(kde_data.min() - 1.0, kde_data.max() + 1.0,500)
+        kde=gaussian_kde(kde_data,bw_method=binwidth)
+        
+        plt.plot(x_eval,kde(x_eval),'k',lw=2,label='KDE')
+        plt.hist(kde_data,bins=bins,density=True,label='Binned Data')
+        plt.show()
+        
     
     def rgb_tip_finder(self,frame):
         data,bins=np.histogram(frame.kmag.dropna(),bins=30)

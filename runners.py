@@ -49,6 +49,15 @@ class run_cross:
         elif galaxy=='m32':
             n147cross=topcatcross('M32.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
+            
+        elif galaxy=='andromeda':
+            n147topcross = topcatcross('lot_m31.unique',0)
+            n147vizcross=topcatcross('lot_m31.unique',0)
+            n147culled=topcatcross('lot_m31.unique',0)
+            n147culled.loadascii()
+            n147culled.ciscuts()
+            rmatch.topmatch(n147topcross,'crossedm31.csv')
+            rmatch.vizmatch(n147vizcross,'m31_vizcross.csv')
         
         
         #crossmathed points deleted
@@ -93,8 +102,61 @@ class run_cross:
         plotter.plot_culled_viztop_cmd(self.n147culled)
         
 
+    def kde(self):
+        self.n147topcross.delete_crossed_points()
+        self.n147vizcross.delete_uncrossed_points()     
+        self.n147culled.gaia_viz_cull_points(self.n147topcross,self.n147vizcross)
+        self.n147culled.sbsextinction()
+        
+        
+        
+class kde_separator:
+    
+    def __init__(self,galaxy):
+        
+        run=make_subsets(galaxy)
+        
+        run.crossed()
+        
+        self.frame=run.subset
+        self.galaxy=galaxy
+        
+        self.plotter=graphs()
+        
+    def kde_graph_test(self):
+        
+        frame=self.frame
+        
+        h=frame.hmag
+        k=frame.kmag
+        j=frame.jmag
+        
+        
+        
+        upper=18.2
+        lower=17.8
+        
+        while lower > 15:
+            
+            jk= j-k
+            hk= h-k
+            binjk=[]
+            for i in range(len(j)):
+                
+                if lower<j[i]<upper:
+                    binjk.append(jk[i])
+            
+            binjk=np.array(binjk)
+        
+            self.plotter.cmd_kde(upper,lower,binjk)
+            
+            upper=upper-0.4
+            lower=lower-0.4
+        
 
-
+        
+        
+        
 class run_both:
     
     #initialising class creates two dataframes of data for m and c stars respectively

@@ -46,6 +46,10 @@ class make_subsets:
         elif galaxy=='m32':
             n147cross=topcatcross('M32.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
+            
+        elif galaxy=='andromeda':
+            n147cross=topcatcross('lot_m31.unique',0)
+            rmatch.topmatch(n147cross,'crossedm31.csv')
         
         
         #crossmathed points deleted
@@ -54,7 +58,7 @@ class make_subsets:
         
         #tangent point topcatcross class attributes created
         
-        n147cross.create_tangent_coords(8.300500,48.50850)
+        #n147cross.create_tangent_coords(8.300500,48.50850)
         
         #dataframe set as topcatcross class attribute
         
@@ -121,3 +125,12 @@ class make_subsets:
         
         selection=n147cross.select_rgb_region(0.975,1.12,17.75,18.3)
         self.subset=selection
+        
+    def crossed(self):
+        n147cross=self.n147cross
+        n147cross.sbsextinction()
+        
+        self.subset=n147cross
+        
+
+        
