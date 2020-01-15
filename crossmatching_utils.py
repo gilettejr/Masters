@@ -10,6 +10,9 @@ import numpy as np
 from astropy.table import QTable
 from astropy import units as u
 from asymphr import asymphr
+
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 #class for dealing with crossmatching operations and further data analysis based on crossmatched data
 class topcatcross(asymphr):
     
@@ -134,6 +137,75 @@ class topcatcross(asymphr):
                 
                 continue
             
+            
+            else:
+                
+                #index numbers are floats, need to be converted to integers for identifying array elements
+                
+                
+                #entire row of data wiped if crossmatched with gaia data
+                #self.index[i]=np.nan
+                self.ra[i] = np.nan
+                self.dec[i] = np.nan
+                self.xj[i] = np.nan
+                self.yj[i] = np.nan
+                self.jmag[i] = np.nan
+                self.jerr[i] = np.nan
+                self.jcis[i] = np.nan
+                self.xh[i] = np.nan
+                self.yh[i] = np.nan
+                self.hmag[i] = np.nan
+                self.herr[i] = np.nan
+                self.hcis[i] = np.nan
+                self.xk[i] = np.nan
+                self.yk[i] = np.nan
+                self.kmag[i] = np.nan
+                self.kerr[i] = np.nan
+                self.kcis[i] = np.nan
+                
+    def delete_uncrossed_points_in_defined_area(self,vizier_fov_file):
+        
+        vizcat=pd.read_csv(vizier_fov_file)
+        
+        ra=vizcat._RAJ2000
+        dec=vizcat._DEJ2000
+        
+        vertex1=(ra[np.argmin(ra)],dec[np.argmin(ra)])
+        vertex2=(ra[np.argmax(dec)],dec[np.argmax(dec)])
+        vertex3=(ra[np.argmax(ra)],dec[np.argmax(ra)])
+        vertex4=(ra[np.argmin(dec)],dec[np.argmin(dec)])
+        
+        print(vertex1)
+        print(vertex2)
+        print(vertex3)
+        print(vertex4)
+        
+        fov=Polygon([vertex1,vertex2,vertex3,vertex4])
+        
+        #locates each crossed point using index identifiers from crossmatched gaia file
+        
+        for i in self.index_nos:
+            i=int(i)
+        print(self.index_nos)
+        full_indices=np.arange(len(self.ra))
+        print(full_indices)
+        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        self.unindex_nos=unindex_nos
+        print(unindex_nos)
+        
+
+        
+        for i in unindex_nos:
+        
+            #ignores NaN values
+            
+            if np.isnan(i)==True:
+                
+                continue
+            
+            #formula to stop culling outside of spitzer fov
+            elif fov.contains(Point(self.ra[i],self.dec[i])) == False:
+                continue
             
             else:
                 

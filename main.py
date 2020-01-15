@@ -24,6 +24,10 @@ def main():
     r=kde_separator('ngc147')
     r.kde_graph_test()
     
+
+    
+#0.25
+    
     
 
     

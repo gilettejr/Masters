@@ -88,13 +88,13 @@ class run_cross:
         
     def plot_combined_cmd(self):
         self.n147topcross.delete_crossed_points()
-        self.n147vizcross.delete_uncrossed_points()
+        self.n147vizcross.delete_uncrossed_points_in_defined_area()
         plotter=graphs()
         plotter.plot_viztop_cmd(self.n147topcross,self.n147vizcross)
         
     def plot_culled_cmd(self):
         self.n147topcross.delete_crossed_points()
-        self.n147vizcross.delete_uncrossed_points()     
+        self.n147vizcross.delete_uncrossed_points_in_defined_area('vizdat.csv')   
         self.n147culled.gaia_viz_cull_points(self.n147topcross,self.n147vizcross)
         self.n147culled.sbsextinction()
         
@@ -133,25 +133,58 @@ class kde_separator:
         
         
         
-        upper=18.2
-        lower=17.8
+        upper=18.4
+        lower=18
         
         while lower > 15:
             
             jk= j-k
             hk= h-k
             binjk=[]
-            for i in range(len(j)):
+            for i in range(len(j)): 
                 
                 if lower<j[i]<upper:
                     binjk.append(jk[i])
             
             binjk=np.array(binjk)
-        
+            print(len(binjk))
             self.plotter.cmd_kde(upper,lower,binjk)
             
             upper=upper-0.4
             lower=lower-0.4
+            
+    def kde_big(self):
+        
+        frame=self.frame
+        
+        h=frame.hmag
+        k=frame.kmag
+        j=frame.jmag
+        
+        
+        
+        upper=18
+        lower=17
+        
+        left=1
+        right=3000
+
+        jk= j-k
+        hk= h-k
+        binjk=[]
+        
+        for i in range(len(j)):
+            
+            if lower<k[i]<upper and left<jk[i]<right:
+                binjk.append(jk[i])
+
+                
+        binjk=np.array(binjk)
+        print(len(binjk))
+
+        self.plotter.cmd_kde(upper,lower,binjk)
+                
+        self.plotter.kj_cmd(frame)
         
 
         

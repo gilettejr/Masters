@@ -28,14 +28,15 @@ class graphs:
                 
         
         #plot formatted and labelled
-        
+
+        #plt.style.use('presentation')
         plt.rc('axes',labelsize = 20)
         plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
         plt.gca().invert_yaxis()
-        plt.ylabel('$K_0$')
-        plt.xlabel('J-$K_0$')
-        plt.title(target.filename + ' CMD')
-        
+        plt.ylabel('K')
+        plt.xlabel('J-K')
+        #plt.title(target.filename + ' CMD')
+        plt.style.use('ggplot')
         plt.show()
         
         #ngc147 cut
@@ -54,10 +55,11 @@ class graphs:
         #plot formatted and labelled
         
         plt.rc('axes',labelsize = 20)
-        plt.scatter(target.dec,target.ra,s=3,marker = 'o',alpha = 0.5)
-        plt.ylabel('RA(J200)/degrees')
-        plt.xlabel('Dec(J200)/degrees')
-        plt.title(target.filename + ' Spatial Plot')
+        plt.scatter(target.ra,target.dec,s=3,marker = 'o',color='blue',alpha = 1)
+        plt.xlabel('RA(J200)/deg')
+        plt.ylabel('Dec(J200)/deg')
+        #plt.title(target.filename + ' Spatial Plot')
+        plt.style.use('ggplot')
         plt.show()
         
     #method plots raw camera xy pixel positions from target class or dataframe
@@ -164,23 +166,23 @@ class graphs:
         
         #colour cuts made, extinction corrected
         
-        target.loadascii()
-        target.ciscuts()
-        target.sbsextinction()
+       
         
         #plot formatted and labelled
         
         plt.rc('axes',labelsize = 20)
         #graph is in the format: (j-k)/(h-k)
-        plt.scatter(target.hmag - target.kmag,target.jmag-target.kmag,s=1,marker=',',alpha = 0.5)
+        plt.scatter(target.hmag - target.kmag,target.jmag-target.hmag,s=1,marker=',',alpha = 0.5)
         plt.ylabel('(J-$K)_0$')
         plt.xlabel('(H-$K)_0$')
-        plt.title(target.filename + 'Colour-colour diagram')
+        #plt.title(target.filename + 'Colour-colour diagram')
+        
+        plt.style.use('ggplot')
         
         #line for ngc147 hard colour C cut, Y-J sohn et al.
         
         plt.axvline(x=0.44,linestyle=':',color='black')
-        plt.axhline(y=1.34,linestyle=':',color='black')
+        #plt.axhline(y=1.34,linestyle=':',color='black')
     
     
     
@@ -225,7 +227,7 @@ class graphs:
                     
         plt.rc('axes',labelsize=20)
         
-        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data')
         plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
         
         
@@ -233,6 +235,7 @@ class graphs:
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
         plt.xlabel('$(J-K)_0$')
+        plt.style.use('ggplot')
         plt.legend()
         
         plt.show()
@@ -244,7 +247,7 @@ class graphs:
                     
         plt.rc('axes',labelsize=20)
         
-        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=0.5,label='UKIRT Data')
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data')
         plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Vizier IR Catalogue')
         
         
@@ -252,6 +255,7 @@ class graphs:
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
         plt.xlabel('$(J-K)_0$')
+        plt.style.use('ggplot')
         plt.legend()
         
         plt.show()
@@ -398,6 +402,9 @@ class graphs:
         
         plt.plot(x_eval,kde(x_eval),'k',lw=2,label='KDE')
         plt.hist(kde_data,bins=bins,density=True,label='Binned Data')
+        plt.legend()
+        plt.xlabel('$(J-K)_0$')
+        plt.ylabel('Normalised Density')
         plt.show()
         
     
