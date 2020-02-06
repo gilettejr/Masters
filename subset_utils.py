@@ -34,17 +34,22 @@ class make_subsets:
         
             n147cross = topcatcross('lot_n147.unique',0)
             rmatch.topmatch(n147cross,'crossedn147.csv')
+            n147vizcross=topcatcross('lot_n147.unique',0)
+            rmatch.vizmatch(n147vizcross,'n147_vizcross.csv')
+
             
         elif galaxy== 'ngc185':
             n147cross = topcatcross('lot_n185.unique',0)
             rmatch.topmatch(n147cross,'crossedn185.csv')
+            n147vizcross=topcatcross('lot_n185.unique',0)
+            rmatch.vizmatch(n147vizcross,'n185_vizcross.csv')
             
         elif galaxy=='ngc205':
-            n147cross=topcatcross('N205_two.asc',0)
+            n147cross=topcatcross('N205_new_trimmed.unique',0)
             rmatch.topmatch(n147cross,'crossedn205.csv')
             
         elif galaxy=='m32':
-            n147cross=topcatcross('M32.asc',0)
+            n147cross=topcatcross('M32_new.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
             
         elif galaxy=='andromeda':
@@ -55,6 +60,10 @@ class make_subsets:
         #crossmathed points deleted
         
         n147cross.delete_crossed_points()
+        n147vizcross.delete_uncrossed_points_in_defined_area('vizdat.csv')
+        
+        n147cross.sbsextinction()
+        n147vizcross.sbsextinction()
         
         #tangent point topcatcross class attributes created
         
@@ -63,10 +72,12 @@ class make_subsets:
         #dataframe set as topcatcross class attribute
         
         n147cross.make_dataframe()
+        n147vizcross.make_dataframe()
         
         #topcatcross object set as self class object attribute
         
         self.n147cross=n147cross
+        self.n147vizcross=n147vizcross
     
     #function for selecting specifically m and c stars based on hard cuts
     
@@ -75,6 +86,7 @@ class make_subsets:
         #attribute object set to variable for ease
         
         n147cross=self.n147cross
+        n147vizcross=self.n147vizcross
         
         if self.galaxy=='ngc147':
         
@@ -84,11 +96,15 @@ class make_subsets:
             if agb=='m':
             
             
-                selection=n147cross.select_M_stars(1.0,1.34,0.44,18)
+                selection_top=n147cross.select_M_stars(1.0,1.33,0.44,18)
+                
+                selection_viz=n147vizcross.select_M_stars(1.0,1.33,0.44,18)
+                
         
             elif agb=='c':
                 
-                selection=n147cross.select_C_stars(1.34,0.44,18)
+                selection_top=n147cross.select_C_stars(1.33,0.44,0.83,18)
+                selection_viz=n147vizcross.select_C_stars(1.33,0.44,0.83,18)
         
             #error printed if neither 'm' nor 'c' is chosen
                 
@@ -114,7 +130,8 @@ class make_subsets:
         
         #subset set as class attribute
         
-        self.subset=selection
+        self.top_subset=selection_top
+        self.viz_subset=selection_viz
         
     #def rgb(self,xrange,yrange):
     

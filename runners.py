@@ -43,11 +43,11 @@ class run_cross:
             rmatch.topmatch(n147cross,'crossedn185.csv')
             
         elif galaxy=='ngc205':
-            n147cross=topcatcross('N205_two.asc',0)
+            n147cross=topcatcross('N205_new_trimmed.unique',0)
             rmatch.topmatch(n147cross,'crossedn205.csv')
             
         elif galaxy=='m32':
-            n147cross=topcatcross('M32.asc',0)
+            n147cross=topcatcross('M32_new.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
             
         elif galaxy=='andromeda':
@@ -186,6 +186,49 @@ class kde_separator:
                 
         self.plotter.kj_cmd(frame)
         
+    def hist(self):
+        
+        frame=self.frame
+        
+        h=frame.hmag
+        k=frame.kmag
+        j=frame.jmag
+        
+        
+        
+        upper=18
+        lower=17
+        
+
+
+        jk= j-k
+        hk= h-k
+        binjk=[]
+        binhk=[]
+        
+        for i in range(len(j)):
+            
+            if lower<k[i]<upper:
+                binjk.append(jk[i])
+
+                
+        binjk=np.array(binjk)
+        
+        for i in range(len(h)):
+            
+            if lower<k[i]<upper:
+                binhk.append(hk[i])
+        
+        print(len(binjk))
+
+        self.plotter.cmd_hist(upper,lower,binjk,'K-J CMD')
+        
+        self.plotter.cmd_hist(upper,lower,binhk,'K-H CMD')
+                
+
+        
+        
+        
 
         
         
@@ -209,8 +252,13 @@ class run_both:
         
         #subsets and galaxy set to class attributes
         
-        self.mframe=runm.subset
-        self.cframe=runc.subset
+        self.mframe_top=runm.top_subset
+        self.cframe_top=runc.top_subset
+        
+        self.mframe_viz=runm.viz_subset
+        self.cframe_viz=runc.viz_subset
+        
+        
         self.galaxy=galaxy
         
         #plotter object set for plotting graphs
@@ -264,48 +312,81 @@ class run_both:
         self.plotter.colour_hist(self.cframe,self.mframe)
         
     def c_over_m(self):
-        m_no=[]
-        for i in self.mframe.kmag:
+        
+        def CM_to_FEH(CM):
+        
+            FEH=-1.39 -0.47*np.log10(CM)
+        
+            return(FEH)
+        
+        m_no_top=[]
+        for i in self.mframe_top.kmag:
             if np.isnan(i)==False:
-                m_no.append(0)
-        c_no=[]   
-        for j in self.cframe.kmag:
+                m_no_top.append(0)
+        c_no_top=[]   
+        for j in self.cframe_top.kmag:
             if np.isnan(j)==False:
-                c_no.append(0)
+                c_no_top.append(0)
         
-        C=len(c_no)
-        M=len(m_no)
+        C_top=len(c_no_top)
+        M_top=len(m_no_top)
         
-        ratio = C/M
+        ratio_top = C_top/M_top
+        FEH_top=CM_to_FEH(ratio_top)
         
-        print(ratio)
+        m_no_viz=[]
+        for i in self.mframe_viz.kmag:
+            if np.isnan(i)==False:
+                m_no_viz.append(0)
+        c_no_viz=[]   
+        for j in self.cframe_viz.kmag:
+            if np.isnan(j)==False:
+                c_no_viz.append(0)
+        
+        C_viz=len(c_no_viz)
+        M_viz=len(m_no_viz)
+        
+        ratio_viz = C_viz/M_viz
+        FEH_viz=CM_to_FEH(ratio_viz)
+        
+        print('Gaia crossmatch: C/M = ' + str(ratio_top) + ' and [Fe/H] = ' + str(FEH_top))
+        print('Spitzer crossmatch: C/M = ' + str(ratio_viz) + ' and [Fe/H] = ' + str(FEH_viz))
+        
+        
+
         
     def c_over_m_grad(self,border,tra,tdec):
         
-        in_m_no=[]
-        for i in range(len(self.mframe.kmag)):
-            if np.isnan(self.mframe.ra[i])==False and np.sqrt((self.mframe.ra[i]-tra)**2+(self.mframe.dec[i]-tdec)**2) < border/3600 :
-                in_m_no.append(0)
-        in_c_no=[]   
-        for i in range(len(self.mframe.kmag)):
-            if np.isnan(self.cframe.ra[i])==False and np.sqrt((self.cframe.ra[i]-tra)**2+(self.cframe.dec[i]-tdec)**2) < border/3600 :
-                in_c_no.append(0)
+        def CM_to_FEH(CM):
         
-        in_C=len(in_c_no)
-        in_M=len(in_m_no)
+            FEH=-1.39 -0.47*np.log10(CM)
         
-        out_m_no=[]
-        for i in range(len(self.mframe.kmag)):
-            if np.isnan(self.mframe.ra[i])==False and np.sqrt((self.mframe.ra[i]-tra)**2+(self.mframe.dec[i]-tdec)**2) > border/3600 :
-                out_m_no.append(0)
-        out_c_no=[]  
+            return(FEH)
         
-        for i in range(len(self.mframe.kmag)):
-            if np.isnan(self.cframe.ra[i])==False and np.sqrt((self.cframe.ra[i]-tra)**2+(self.cframe.dec[i]-tdec)**2) > border/3600 :
-                out_c_no.append(0)
+        in_m_no_top=[]
+        for i in range(len(self.mframe_top.kmag)):
+            if np.isnan(self.mframe_top.ra[i])==False and np.sqrt((self.mframe_top.ra[i]-tra)**2+(self.mframe_top.dec[i]-tdec)**2) < border/3600 :
+                in_m_no_top.append(0)
+        in_c_no_top=[]   
+        for i in range(len(self.mframe_top.kmag)):
+            if np.isnan(self.cframe_top.ra[i])==False and np.sqrt((self.cframe_top.ra[i]-tra)**2+(self.cframe_top.dec[i]-tdec)**2) < border/3600 :
+                in_c_no_top.append(0)
         
-        out_C=len(out_c_no)
-        out_M=len(out_m_no)
+        in_C=len(in_c_no_top)
+        in_M=len(in_m_no_top)
+        
+        out_m_no_top=[]
+        for i in range(len(self.mframe_top.kmag)):
+            if np.isnan(self.mframe_top.ra[i])==False and np.sqrt((self.mframe_top.ra[i]-tra)**2+(self.mframe_top.dec[i]-tdec)**2) > border/3600 :
+                out_m_no_top.append(0)
+        out_c_no_top=[]  
+        
+        for i in range(len(self.mframe_top.kmag)):
+            if np.isnan(self.cframe_top.ra[i])==False and np.sqrt((self.cframe_top.ra[i]-tra)**2+(self.cframe_top.dec[i]-tdec)**2) > border/3600 :
+                out_c_no_top.append(0)
+        
+        out_C=len(out_c_no_top)
+        out_M=len(out_m_no_top)
         
         self.inCM=(in_C/in_M)
         self.outCM=(out_C/out_M)
@@ -313,12 +394,48 @@ class run_both:
         print(self.inCM)
         print(self.outCM)
         
-    def CM_to_FEH(self,CM):
+
         
-        FEH=-1.39 -0.47*np.log10(CM)
+        in_m_no_viz=[]
+        for i in range(len(self.mframe_viz.kmag)):
+            if np.isnan(self.mframe_viz.ra[i])==False and np.sqrt((self.mframe_viz.ra[i]-tra)**2+(self.mframe_viz.dec[i]-tdec)**2) < border/3600 :
+                in_m_no_viz.append(0)
+        in_c_no_viz=[]   
+        for i in range(len(self.mframe_viz.kmag)):
+            if np.isnan(self.cframe_viz.ra[i])==False and np.sqrt((self.cframe_viz.ra[i]-tra)**2+(self.cframe_viz.dec[i]-tdec)**2) < border/3600 :
+                in_c_no_viz.append(0)
         
-        print(FEH)
-        return(FEH)
+        in_C_viz=len(in_c_no_viz)
+        in_M_viz=len(in_m_no_viz)
+        
+        out_m_no_viz=[]
+        for i in range(len(self.mframe_viz.kmag)):
+            if np.isnan(self.mframe_viz.ra[i])==False and np.sqrt((self.mframe_viz.ra[i]-tra)**2+(self.mframe_viz.dec[i]-tdec)**2) > border/3600 :
+                out_m_no_viz.append(0)
+        out_c_no_viz=[]  
+        
+        for i in range(len(self.mframe_viz.kmag)):
+            if np.isnan(self.cframe_viz.ra[i])==False and np.sqrt((self.cframe_viz.ra[i]-tra)**2+(self.cframe_viz.dec[i]-tdec)**2) > border/3600 :
+                out_c_no_viz.append(0)
+        
+        out_C_viz=len(out_c_no_viz)
+        out_M_viz=len(out_m_no_viz)
+        
+        self.inCM_viz=(in_C_viz/in_M_viz)
+        self.outCM_viz=(out_C_viz/out_M_viz)
+        
+        print(self.inCM_viz)
+        print(self.outCM_viz)
+        
+        print('Using Gaia Crossmatching, inner galaxy (<70"), C/M=' + str(self.inCM) + ', [Fe/H]='+str(CM_to_FEH(self.inCM)))
+        print('Using Gaia Crossmatching, outer galaxy (>70"), C/M=' + str(self.outCM) + ', [Fe/H]='+str(CM_to_FEH(self.outCM)))
+        
+        print('Using Spitzer Crossmatching, inner galaxy (<70"), C/M=' + str(self.inCM_viz) + ', [Fe/H]='+str(CM_to_FEH(self.inCM_viz)))
+        print('Using Spitzer Crossmatching, outer galaxy (>70"), C/M=' + str(self.outCM_viz) + ', [Fe/H]='+str(CM_to_FEH(self.outCM_viz)))
+        
+        
+        
+
         
     def find_CM_border(self):
         plotter=graphs()

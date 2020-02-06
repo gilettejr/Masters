@@ -20,9 +20,10 @@ from crossmatching_utils import topcatstuff
 
 def main():  
         
+    
+    r=run_both('ngc147')
+    r.c_over_m_grad(70,8.3005,48.5087389)
 
-    r=kde_separator('ngc147')
-    r.kde_graph_test()
     
 
     

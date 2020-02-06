@@ -278,7 +278,7 @@ class topcatcross(asymphr):
     
     #returns dataframe only containing C star candidates based on hard colour cuts
     
-    def select_C_stars(self,j_kcut,h_kcut,minkmag):
+    def select_C_stars(self,j_kmin,h_kmin,j_hmin,minkmag):
         
         #copy made to protect original dataframe
         
@@ -288,7 +288,7 @@ class topcatcross(asymphr):
         
         for i in range(len(d.ra)):
             
-            if d.jmag[i]-d.kmag[i] < j_kcut or d.hmag[i]-d.kmag[i] < h_kcut or d.kmag[i] > minkmag:
+            if d.jmag[i]-d.kmag[i] < j_kmin or d.hmag[i]-d.kmag[i] < h_kmin or d.kmag[i] > minkmag or d.jmag[i]-d.hmag[i] < j_hmin:
                 
                 #entire row wiped if conditions not met
                 
@@ -310,7 +310,7 @@ class topcatcross(asymphr):
         
         for i in range(len(d.ra)):
             
-            if j_kmin > d.jmag[i]-d.kmag[i] or (j_kmax < d.jmag[i]-d.kmag[i] and h_kmax < d.hmag[i]-d.kmag[i]) or d.kmag[i] > minkmag:
+            if j_kmin > d.jmag[i]-d.kmag[i] or d.jmag[i]-d.kmag[i] > j_kmax or  d.hmag[i]-d.kmag[i] > h_kmax or d.kmag[i] > minkmag:
                 
                 #entire row wiped if conditions not met
 
@@ -415,13 +415,13 @@ class crossed_data:
         
         #arrays of crossmatched data set as gaiacross attributes
         
-        gaiacross.crossjmag=crossjmag
-        gaiacross.crosshmag=crosshmag
-        gaiacross.crosskmag=crosskmag
+        gaiacross.topcrossjmag=crossjmag
+        gaiacross.topcrosshmag=crosshmag
+        gaiacross.topcrosskmag=crosskmag
         
         #index numbers also set as attribute for future troubleshooting
         
-        gaiacross.index_nos=crossed_table.index_no
+        gaiacross.topindex_nos=crossed_table.index_no
 
     def vizmatch(self,gaiacross,incrossfile):
         
@@ -465,7 +465,7 @@ class crossed_data:
         
         #index numbers also set as attribute for future troubleshooting
         
-        gaiacross.index_nos=crossed_table.index_no
+        gaiacross.viz_index_nos=crossed_table.index_no
             
             
             

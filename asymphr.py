@@ -243,6 +243,8 @@ class asymphr:
     
     #method to carry out star by star extinction on object using SFD dustmap. Takes object target as input
     
+        print('UKIRT Extinction corrections done')
+    
     def sbsextinction_on_frame(self,target):
         
         

@@ -36,7 +36,38 @@ class graphs:
         plt.ylabel('K')
         plt.xlabel('J-K')
         #plt.title(target.filename + ' CMD')
-        plt.style.use('ggplot')
+
+        plt.show()
+        
+        #ngc147 cut
+        
+        #plt.axvline(x=1.34,linestyle=':',color='black')
+        #plt.axhline(y=18,linestyle=':',color='black')
+        
+    def kj_cmd_select(self,target,xmin,xmax,ymin,ymax):
+    
+    #figure created
+        
+        plt.figure()
+                
+        
+        #plot formatted and labelled
+
+        #plt.style.use('presentation')
+        plt.rc('axes',labelsize = 20)
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
+        plt.gca().set_autoscale_on(False)
+        plt.plot([xmin,xmax],[ymin,ymin],color='black')
+        plt.plot([xmax,xmax],[ymin,ymax],color='black')
+        plt.plot([xmax,xmin],[ymax,ymax],color='black')
+        plt.plot([xmin,xmin],[ymax,ymin],color='black')
+        plt.gca().invert_yaxis()
+        plt.ylabel('K')
+        plt.xlabel('J-K')
+        
+
+        #plt.title(target.filename + ' CMD')
+        #plt.style.use('ggplot')
         plt.show()
         
         #ngc147 cut
@@ -44,7 +75,24 @@ class graphs:
         #plt.axvline(x=1.34,linestyle=':',color='black')
         #plt.axhline(y=18,linestyle=':',color='black')
     
+    def hk_cmd(self,target):
+    
+    #figure created
+        
+        plt.figure()
+                
+        
+        #plot formatted and labelled
 
+        #plt.style.use('presentation')
+        plt.rc('axes',labelsize = 20)
+        plt.scatter(target.hmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
+        plt.gca().invert_yaxis()
+        plt.ylabel('K')
+        plt.xlabel('H-K')
+        #plt.title(target.filename + ' CMD')
+        plt.style.use('ggplot')
+        plt.show()
     #method plots spatial distribution from target class or dataframe
 
     def spatial_plot(self,target):
@@ -53,6 +101,7 @@ class graphs:
         
         
         #plot formatted and labelled
+        plt.figure()
         
         plt.rc('axes',labelsize = 20)
         plt.scatter(target.ra,target.dec,s=3,marker = 'o',color='blue',alpha = 1)
@@ -173,7 +222,7 @@ class graphs:
         plt.rc('axes',labelsize = 20)
         #graph is in the format: (j-k)/(h-k)
         plt.scatter(target.hmag - target.kmag,target.jmag-target.hmag,s=1,marker=',',alpha = 0.5)
-        plt.ylabel('(J-$K)_0$')
+        plt.ylabel('(J-$H)_0$')
         plt.xlabel('(H-$K)_0$')
         #plt.title(target.filename + 'Colour-colour diagram')
         
@@ -407,6 +456,22 @@ class graphs:
         plt.ylabel('Normalised Density')
         plt.show()
         
+    def cmd_hist(self,upper,lower,colour, cmd_colour):
+        
+        
+        plt.figure()
+        binwidth = stats.knuth_bin_width(colour)
+        kde_data=colour
+        bins=np.arange(min(kde_data ), max(kde_data ) + binwidth, binwidth)
+
+        kde_data=colour
+        
+        plt.hist(kde_data,bins=bins,label='Binned Data')
+        plt.title(cmd_colour)
+
+        
+        
+        
     
     def rgb_tip_finder(self,frame):
         data,bins=np.histogram(frame.kmag.dropna(),bins=30)
@@ -560,11 +625,11 @@ class basic_graphs:
 
             
         elif galaxy=='ngc205':
-            n147 = asymphr('N205_two.asc',0)
+            n147 = asymphr('N205_new_trimmed.unique',0)
 
             
         elif galaxy=='m32':
-            n147=asymphr('M32.asc',0)
+            n147=asymphr('M32_new.asc',0)
             
         elif galaxy=='andromeda':
             n147=asymphr('lot_m31.unique',0)
@@ -578,7 +643,8 @@ class basic_graphs:
         
         n147.loadascii()
         n147.ciscuts()
-        #n147.sbsextinction()
+        n147.sbsextinction()
+
         
         #data set as class attribute for running class methods
         
@@ -586,8 +652,11 @@ class basic_graphs:
         self.plotter=graphs()
     #uses the graphs().kj_cmd method to plot a CMD using class attribute data
         
-    def plot_cmd(self):
+    def plot_kj_cmd(self):
         self.plotter.kj_cmd(self.n147)
+        
+    def plot_hk_cmd(self):
+        self.plotter.hk_cmd(self.n147)
     
     #uses the graphs().colour_colour method to plot a cc diagram using class attribute data
     

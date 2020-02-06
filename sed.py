@@ -78,8 +78,8 @@ class crossall:
         self.jmag=np.array(jmag)
         self.kmag=np.array(kmag)
         
-        #plotter=graphs()
-        #plotter.kj_cmd(self)
+        plotter=graphs()
+        plotter.kj_cmd(self)
         
     def pandaviz_extinction(self):
         
@@ -143,12 +143,30 @@ class crossall:
         
         for i in indices:
             
-            locind.append((np.where(self.index==i)))
-        
-        self.sedindices=np.array(locind)
+            locind.append(np.where(self.index==i)[0][0])
+        self.sedindices=locind
         print(self.sedindices)
         
+        plotter=graphs()
+        plotter.kj_cmd_select(self,xmin,xmax,ymin,ymax)
+        
+        
     def plot_sed(self):
+        
+        def mag_to_flux(m,zpflux):
+            
+            f=zpflux*10**(-m/2.5)
+            
+            return f
+        
+        def angwave_to_HZ(lam):
+            
+            c=3*10**8
+            lam=lam*10**-10
+            
+            freq=c/lam
+            
+            return freq
         
         gwave=4876.7
         iwave=7520.8
@@ -158,27 +176,109 @@ class crossall:
         irbluewave=36000
         irredwave=45000
         
+        gzpoint=3893.0
+        izpoint=2577.0
+        jzpoint=1556.8
+        hzpoint=1038.3
+        kzpoint=644.1
+        irbluezpoint=277.2
+        irredzpoint=179.0
         
-        i=106
+        zpoints=np.array([gzpoint,izpoint,jzpoint,hzpoint,kzpoint,irbluezpoint,irredzpoint])
+        angwaves=np.array([gwave,iwave,jwave,hwave,kwave,irbluewave,irredwave])
+        freqs= angwave_to_HZ(angwaves)
+        micwaves=angwaves * 10 ** -4
         
-        lam=gwave * u.AA
+        xticks=np.concatenate((micwaves,np.array([1])))
         
-        ydatmag=np.array([self.gmag[i],self.imag[i],self.jmag[i],self.hmag[i],self.kmag[i],self.irbluemag[i],self.irredmag[i]]) * u.mag
-        gflux=self.gmag[i]*u.mag.to('Jy', u.spectral_density(lam))
-        xdat=np.array([gwave,iwave,jwave,hwave,kwave,irbluewave,irredwave]) * u.AA
+        plt.figure()
+        
+        j=self.sedindices
+        
+        for i in range(len(j)):
+            
+            print(i)
+            
+            mags=np.array([self.gmag[j[i]],self.imag[j[i]],self.jmag[j[i]],self.hmag[j[i]],self.kmag[j[i]],self.irbluemag[j[i]],self.irredmag[j[i]]])  
+        
+            fluxes=mag_to_flux(mags,zpoints)
+        
+            ydata=fluxes * freqs
+        
+
+            plt.plot(micwaves,ydata,marker='o',label = 'SED for NGC147 Star, SED Index ' + str(j[i]))
+            
+            if (i%11==0 and i!=0) or i==len(self.sedindices)-1:
+                
+                print('yeet')
+            
+                plt.yscale('log')
+                plt.xscale('log')
+                plt.ylabel('v$F_v$(Hz Jy)')
+                plt.xlabel('wavelength(um)')
+        
+        #for i in range(len(micwaves)):
+        
+        #plt.xticks(xticks,['g','i','j','h','k','3.6','4.5',str(10**0)])
+            
+            #print(micwaves[i],ydata[i])
+            
+                plt.legend()
+        
         
 
         
-        #plt.gca().invert_yaxis()
-        #plt.plot(xdat,ydatflux,label='Star 1')
+                plt.show()
+                
+                if i%11==0:
+                    plt.figure()
+                    
+
         
+
+def main():
+    
+    print('Press i for interactive, m for m stars or c for c stars')
+    
+    choice=input()
+    
+    c = crossall('NGC147_pand.csv')
+    c.make_cmd('ngc147_sed.csv')
+    c.pandaviz_extinction()
+    
+    if choice=='i':
         
-        #plt.legend()
-        #plt.show()
+        print('Here is a CMD of all points crossmatched with Pandas, Spitzer and UKIRT')
     
+            
+        c = crossall('NGC147_pand.csv')
+        c.make_cmd('ngc147_sed.csv')
+        c.pandaviz_extinction()
+        
+        print('Please input coordinates for a box containing the stars you want to see an SED for\n')
+        
+        print('xmin: ')
+        xmin=input()
+        
+        print('xmax: ')
+        xmax=input()
+        
+        print('ymin: ')
+        ymin=input()
+        
+        print('ymax: ')
+        ymax=input()
     
-c = crossall('NGC147_pand.csv')
-c.make_cmd('ngc147_sed.csv')
-c.pandaviz_extinction()
-c.choose_stars(1.8,2.0,16.6,16.9)
-c.plot_sed()
+        c.choose_stars(xmin,xmax,ymin,ymax)
+        
+    elif choice=='c':
+        
+        c.choose_stars(1.33,20,0,18)
+        
+    elif choice=='m':
+        
+        c.choose_stars(1,1.33,0,18)
+
+    c.plot_sed()
+    
+main()
