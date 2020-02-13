@@ -35,14 +35,34 @@ class make_subsets:
             n147cross = topcatcross('lot_n147.unique',0)
             rmatch.topmatch(n147cross,'crossedn147.csv')
             n147vizcross=topcatcross('lot_n147.unique',0)
+            rmatch.topmatch(n147vizcross,'crossedn147.csv')
             rmatch.vizmatch(n147vizcross,'n147_vizcross.csv')
+            
+            n147cross.delete_crossed_points()
+            n147vizcross.delete_crossed_points()
+            n147vizcross.delete_uncrossed_points_in_defined_area('vizdat.csv')
+            n147cross.sbsextinction()
+            n147vizcross.sbsextinction()
+            
+            n147cross.make_dataframe()
+            n147vizcross.make_dataframe()
+            
+            self.n147cross=n147cross
+            self.n147vizcross=n147vizcross
+
 
             
         elif galaxy== 'ngc185':
             n147cross = topcatcross('lot_n185.unique',0)
             rmatch.topmatch(n147cross,'crossedn185.csv')
-            n147vizcross=topcatcross('lot_n185.unique',0)
-            rmatch.vizmatch(n147vizcross,'n185_vizcross.csv')
+
+            
+            n147cross.delete_crossed_points()
+            n147cross.sbsextinction()
+            
+            n147cross.make_dataframe()
+            self.n147cross=n147cross
+
             
         elif galaxy=='ngc205':
             n147cross=topcatcross('N205_new_trimmed.unique',0)
@@ -59,11 +79,8 @@ class make_subsets:
         
         #crossmathed points deleted
         
-        n147cross.delete_crossed_points()
-        n147vizcross.delete_uncrossed_points_in_defined_area('vizdat.csv')
-        
-        n147cross.sbsextinction()
-        n147vizcross.sbsextinction()
+
+
         
         #tangent point topcatcross class attributes created
         
@@ -71,13 +88,11 @@ class make_subsets:
         
         #dataframe set as topcatcross class attribute
         
-        n147cross.make_dataframe()
-        n147vizcross.make_dataframe()
+
         
         #topcatcross object set as self class object attribute
         
-        self.n147cross=n147cross
-        self.n147vizcross=n147vizcross
+        
     
     #function for selecting specifically m and c stars based on hard cuts
     
@@ -86,9 +101,11 @@ class make_subsets:
         #attribute object set to variable for ease
         
         n147cross=self.n147cross
-        n147vizcross=self.n147vizcross
+
         
         if self.galaxy=='ngc147':
+            
+            n147vizcross=self.n147vizcross
         
         #appropriate topcatcross method utilised to take subset data from
         #wfcat dataframe attribute and select only c/m star candidates
@@ -110,6 +127,9 @@ class make_subsets:
                 
             else:
                 print('Not a valid class')
+            
+            self.top_subset=selection_top
+            self.viz_subset=selection_viz
         
         #different selection parameters for different galaxy
         
@@ -118,11 +138,13 @@ class make_subsets:
             if agb=='m':
                 #parameters chosen using paper and visual inspection of cmd
                 #should also verify with isochrones and other red giant branch finding methods
-                selection=n147cross.select_M_stars(1.018,1.32,0.4,17.8)
+                selection_top = n147cross.select_M_stars(0.96,1.27,0.42,17.8)
                 
             elif agb=='c':
                 
-                selection=n147cross.select_C_stars(1.32,0.4,17.8)
+                selection_top = n147cross.select_C_stars(1.27,0.42,0.8,17.8)
+                
+            self.top_subset=selection_top
         
         #extinction carried out after subsets chosen
         
@@ -130,8 +152,7 @@ class make_subsets:
         
         #subset set as class attribute
         
-        self.top_subset=selection_top
-        self.viz_subset=selection_viz
+
         
     #def rgb(self,xrange,yrange):
     

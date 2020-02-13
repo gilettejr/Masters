@@ -670,6 +670,8 @@ class basic_graphs:
 
         self.plotter.spatial_plot(self.n147)
         
+
+        
     #uses the graphs().xy_spatial_plot method to plot an xy pixel distribution using class attribute data    
         
     def plot_xy_spatial(self):

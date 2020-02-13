@@ -70,13 +70,13 @@ class topcatcross(asymphr):
         
         full_indices=np.arange(len(self.ra))
         
-        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        unindex_nos=np.setdiff1d(full_indices,self.top_index_nos)
         
         self.unindex_nos=unindex_nos
         
         
         
-        for i in self.index_nos:
+        for i in self.top_index_nos:
         
             #ignores NaN values
             
@@ -120,12 +120,12 @@ class topcatcross(asymphr):
         
         #locates each crossed point using index identifiers from crossmatched gaia file
         
-        for i in self.index_nos:
+        for i in self.viz_index_nos:
             i=int(i)
-        print(self.index_nos)
+        print(self.viz_index_nos)
         full_indices=np.arange(len(self.ra))
         print(full_indices)
-        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        unindex_nos=np.setdiff1d(full_indices,self.viz_index_nos)
         self.unindex_nos=unindex_nos
         print(unindex_nos)
         
@@ -175,23 +175,20 @@ class topcatcross(asymphr):
         vertex3=(ra[np.argmax(ra)],dec[np.argmax(ra)])
         vertex4=(ra[np.argmin(dec)],dec[np.argmin(dec)])
         
-        print(vertex1)
-        print(vertex2)
-        print(vertex3)
-        print(vertex4)
+
         
         fov=Polygon([vertex1,vertex2,vertex3,vertex4])
         
         #locates each crossed point using index identifiers from crossmatched gaia file
         
-        for i in self.index_nos:
+        for i in self.viz_index_nos:
             i=int(i)
-        print(self.index_nos)
+        #print(self.viz_index_nos)
         full_indices=np.arange(len(self.ra))
-        print(full_indices)
-        unindex_nos=np.setdiff1d(full_indices,self.index_nos)
+        #print(full_indices)
+        unindex_nos=np.setdiff1d(full_indices,self.viz_index_nos)
         self.unindex_nos=unindex_nos
-        print(unindex_nos)
+        #print(unindex_nos)
         
 
         
@@ -288,7 +285,12 @@ class topcatcross(asymphr):
         
         for i in range(len(d.ra)):
             
-            if d.jmag[i]-d.kmag[i] < j_kmin or d.hmag[i]-d.kmag[i] < h_kmin or d.kmag[i] > minkmag or d.jmag[i]-d.hmag[i] < j_hmin:
+            if np.isnan(d.ra[i]) == True:
+                
+                continue
+            
+            
+            elif d.kmag[i] > minkmag or d.jmag[i]-d.kmag[i] < j_kmin or d.hmag[i]-d.kmag[i] < h_kmin  or d.jmag[i]-d.hmag[i] < j_hmin:
                 
                 #entire row wiped if conditions not met
                 
@@ -310,7 +312,12 @@ class topcatcross(asymphr):
         
         for i in range(len(d.ra)):
             
-            if j_kmin > d.jmag[i]-d.kmag[i] or d.jmag[i]-d.kmag[i] > j_kmax or  d.hmag[i]-d.kmag[i] > h_kmax or d.kmag[i] > minkmag:
+            if np.isnan(d.ra[i]) == True:
+                
+                continue
+            
+            
+            elif d.kmag[i] > minkmag or j_kmin > d.jmag[i]-d.kmag[i] or d.jmag[i]-d.kmag[i] > j_kmax or  d.hmag[i]-d.kmag[i] > h_kmax:
                 
                 #entire row wiped if conditions not met
 
@@ -354,21 +361,21 @@ class crossed_data:
         
         #noise cut based on Gaia DR2 values and recomendations from the Gaia project website
         
-        for i in range(len(crossed_table.pmra)):
+        for i in range(len(crossed_table.parallax_over_error)):
             if crossed_table.astrometric_excess_noise_sig[i] > 2:
                 crossed_table.index_no[i]=np.nan
                 
         #parallax cut to remove any badly  measured parallaxes
                 
-        for i in range(len(crossed_table.pmra)):
+        for i in range(len(crossed_table.parallax_over_error)):
             if crossed_table.parallax_over_error[i] < 1:
                 crossed_table.index_no[i]=np.nan
                 
         #proper motion cut to remove any proper motions pointing to distant objects (i.e. pm~0)
                 
-        for i in range(len(crossed_table.pmra)):
-            if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
-                crossed_table.index_no[i]=np.nan
+        #for i in range(len(crossed_table.pmra)):
+            #if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
+                #crossed_table.index_no[i]=np.nan
 
         
         #WFCAM data is loaded and the usual cuts made
@@ -421,7 +428,7 @@ class crossed_data:
         
         #index numbers also set as attribute for future troubleshooting
         
-        gaiacross.topindex_nos=crossed_table.index_no
+        gaiacross.top_index_nos=crossed_table.index_no
 
     def vizmatch(self,gaiacross,incrossfile):
         

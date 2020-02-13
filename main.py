@@ -7,8 +7,9 @@ Created on Sat Sep 28 15:14:03 2019
 """
 
 from runners import run_both,run_rgb,run_cross,kde_separator
-from graphing_class import basic_graphs
+from graphing_class import basic_graphs,graphs
 from crossmatching_utils import topcatstuff
+from iso_utils import import_isos
 #class for reading in and plotting ascii file data
 
 ##185 centre: 9.7415417, 48.3373778
@@ -21,8 +22,14 @@ from crossmatching_utils import topcatstuff
 def main():  
         
     
-    r=run_both('ngc147')
-    r.c_over_m_grad(70,8.3005,48.5087389)
+
+    
+    g=run_both('ngc147')
+    g.c_over_m_grad_topviz(70)
+    
+   # f=import_isos('ngc185','Isochrones/z00106.dat')
+   # f.overlay_agb_tip()
+    
 
     
 
