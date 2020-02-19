@@ -466,7 +466,82 @@ class run_both:
         
         print('Using Gaia and Spitzer Crossmatching, inner galaxy (<70"), C/M=' + str(self.inCM_viz) + ', [Fe/H]='+str(CM_to_FEH(self.inCM_viz)))
         print('Using Gaia Spitzer Crossmatching, outer galaxy (>70"), C/M=' + str(self.outCM_viz) + ', [Fe/H]='+str(CM_to_FEH(self.outCM_viz)))
+    
+    def c_over_m_grad_plot(self,slice_size,outer_limit):
         
+        def CM_to_FEH(CM):
+        
+            FEH=-1.39 -0.47*np.log10(CM)
+        
+            return(FEH)
+            
+        tra=self.tra
+        tdec=self.tdec
+        
+        grad=slice_size
+        m_no_grad=[0]
+        c_no_grad=[0]
+        while grad < outer_limit:
+            
+            in_m_no_top=[]
+            for i in range(len(self.mframe_top.kmag)):
+                if np.isnan(self.mframe_top.ra[i])==False and np.sqrt((self.mframe_top.ra[i]-tra)**2+(self.mframe_top.dec[i]-tdec)**2) < grad/3600 :
+                    in_m_no_top.append(0)
+                    
+            in_c_no_top=[]
+            for i in range(len(self.mframe_top.kmag)):
+                if np.isnan(self.cframe_top.ra[i])==False and np.sqrt((self.cframe_top.ra[i]-tra)**2+(self.cframe_top.dec[i]-tdec)**2) < grad/3600 :
+                    in_c_no_top.append(0)
+        
+                
+            m_no_grad.append(len(in_m_no_top))
+            c_no_grad.append(len(in_c_no_top))
+        
+
+        
+        
+            grad=grad+slice_size
+            
+ 
+        
+
+           
+        m_slices=[]
+        for i in range(1,len(m_no_grad)):
+            m_slices.append(m_no_grad[i]-m_no_grad[i-1])
+        c_slices=[]
+        for j in range(1,len(c_no_grad)):
+            c_slices.append(c_no_grad[j]-c_no_grad[j-1])
+            
+        print(m_slices)
+        print(c_slices)
+        
+        m_slices=np.array(m_slices)    
+        c_slices=np.array(c_slices)
+        
+        CM_slices=c_slices/m_slices
+        
+        FEH_slices=CM_to_FEH(CM_slices)
+        
+        xdata=[]
+        for i in range(slice_size,(len(m_slices)+1)*slice_size,slice_size):
+            xdata.append(i)
+            
+        xdata=np.array(xdata)
+        
+        print(xdata)
+        print(FEH_slices)
+        
+        plt.plot(xdata,FEH_slices,marker='o',label='[Fe/H] Gradient')
+        plt.xlabel('Radial Distance/arcsecs')
+        plt.ylabel('[Fe/H]/dex')
+        plt.legend
+        
+        plt.show()
+            
+            
+            
+    
     def c_over_m_grad_top(self,border):
         
         def CM_to_FEH(CM):

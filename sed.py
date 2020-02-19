@@ -137,8 +137,10 @@ class crossall:
         
         for i in range(len(self.index)):
             if xmin<j_k[i]<xmax and ymin<kmag[i]<ymax:
+                #indices holds the indices of all the stars we want to keep
                 indices.append(self.index[i])
-                
+        
+        #locind holds where in the index list these indices are
         locind=[]
         
         for i in indices:
@@ -191,48 +193,130 @@ class crossall:
         
         xticks=np.concatenate((micwaves,np.array([1])))
         
-        plt.figure()
+        
+        fig,axs=plt.subplots(3,1)
         
         j=self.sedindices
         
-        for i in range(len(j)):
-            
-            print(i)
-            
-            mags=np.array([self.gmag[j[i]],self.imag[j[i]],self.jmag[j[i]],self.hmag[j[i]],self.kmag[j[i]],self.irbluemag[j[i]],self.irredmag[j[i]]])  
+        print('View all or flagged SEDs? a/f')
         
-            fluxes=mag_to_flux(mags,zpoints)
+        choice=input()
         
-            ydata=fluxes * freqs
+        if choice=='a':
         
-
-            plt.plot(micwaves,ydata,marker='o',label = 'SED for NGC147 Star, SED Index ' + str(j[i]))
-            
-            if (i%11==0 and i!=0) or i==len(self.sedindices)-1:
+            for i in range(len(j)):
                 
-                print('yeet')
-            
-                plt.yscale('log')
-                plt.xscale('log')
-                plt.ylabel('v$F_v$(Hz Jy)')
-                plt.xlabel('wavelength(um)')
-        
-        #for i in range(len(micwaves)):
-        
-        #plt.xticks(xticks,['g','i','j','h','k','3.6','4.5',str(10**0)])
-            
-            #print(micwaves[i],ydata[i])
-            
-                plt.legend()
-        
-        
-
-        
-                plt.show()
+                print(i)
                 
-                if i%11==0:
-                    plt.figure()
+                
+                
+                mags=np.array([self.gmag[j[i]],self.imag[j[i]],self.jmag[j[i]],self.hmag[j[i]],self.kmag[j[i]],self.irbluemag[j[i]],self.irredmag[j[i]]])  
+            
+                fluxes=mag_to_flux(mags,zpoints)
+            
+                ydata=fluxes * freqs
+            
+                
+                
+                axs[0].plot(micwaves,ydata,marker='o',label = 'SED Index ' + str(j[i]))
+                
+                axs[1].plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
+                
+                axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
+                
+                if (i%2==0 and i!=0) or i==len(self.sedindices)-1:
                     
+                    print('yeet')
+                
+                    axs[0].set_yscale('log')
+                    axs[0].set_xscale('log')
+                    axs[0].set_ylabel('v$F_v$(Hz Jy)')
+                    axs[0].set_xlabel('wavelength(um)')
+                    
+                    axs[1].set_ylabel('Dec')
+                    axs[1].set_xlabel('RA')
+                    axs[1].set_ylim(48.05,48.95)
+                    axs[1].set_xlim(7.6,9.0)
+                    
+                    axs[2].set_ylabel('$K_0$')
+                    axs[2].set_xlabel('$J_0$-$K_0$')
+                    
+            
+            #for i in range(len(micwaves)):
+            
+            #plt.xticks(xticks,['g','i','j','h','k','3.6','4.5',str(10**0)])
+                
+                #print(micwaves[i],ydata[i])
+                
+                    plt.legend()
+            
+    
+                    
+                    plt.show()
+                    
+                    if i!=len(self.sedindices)-1:
+                    
+                        fig,axs=plt.subplots(3,1)
+                        
+        elif choice=='f':
+            
+            j=np.array([3610,3496,2868,2829,2776,2733,2697,2589,2164,2048])
+                
+            for i in range(len(j)):
+                
+                print(i)
+                
+                
+                
+                mags=np.array([self.gmag[j[i]],self.imag[j[i]],self.jmag[j[i]],self.hmag[j[i]],self.kmag[j[i]],self.irbluemag[j[i]],self.irredmag[j[i]]])  
+            
+                fluxes=mag_to_flux(mags,zpoints)
+            
+                ydata=fluxes * freqs
+            
+                
+                
+                axs[0].plot(micwaves,ydata,marker='o',label = 'SED Index ' + str(j[i]))
+                
+                axs[1].plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
+                
+                axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
+                
+                if (i%15==0 and i!=0) or i==len(j)-1:
+                    
+                    print('yeet')
+                
+                    axs[0].set_yscale('log')
+                    axs[0].set_xscale('log')
+                    axs[0].set_ylabel('v$F_v$(Hz Jy)')
+                    axs[0].set_xlabel('wavelength(um)')
+                    
+                    axs[1].set_ylabel('Dec')
+                    axs[1].set_xlabel('RA')
+                    axs[1].set_ylim(48.05,48.95)
+                    axs[1].set_xlim(7.6,9.0)
+                    
+                    axs[2].set_ylabel('$K_0$')
+                    axs[2].set_xlabel('$J_0$-$K_0$')
+                    
+            
+            #for i in range(len(micwaves)):
+            
+            #plt.xticks(xticks,['g','i','j','h','k','3.6','4.5',str(10**0)])
+                
+                #print(micwaves[i],ydata[i])
+                
+                    plt.legend()
+            
+    
+                    
+                    plt.show()
+                    
+                    if i!=len(self.sedindices)-1:
+                    
+                        fig,axs=plt.subplots(3,1)
+                
+                
 
         
 

@@ -7,7 +7,10 @@ Created on Thu Feb 13 15:31:10 2020
 """
 
 from crossmatching_utils import topcatcross,crossed_data
+from HESSCMD import plotHess
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 
 #takes in m31 file as input, applies cls and extinction cuts, saves to csv file
 def clsextcut():
@@ -41,7 +44,6 @@ def topcrossed():
     data.to_parquet('m31_int_files/int2')
 
 
-topcrossed()
 
     
 
@@ -52,7 +54,24 @@ class m31data:
         
         data=pd.read_parquet('m31_int_files/int' + str(intno))
         self.data=data
+        
+     
+    
+    def plot_cmd(self):
+        
+        data=self.data
+        plt.scatter(data.jmag-data.kmag,data.kmag,marker='.')
+        plt.gca().invert_yaxis()
+        plt.show()
+    
+    def plot_hess(self):
+        data=self.data
+        plotHess(data.kmag.dropna(),data.jmag.dropna()-data.kmag.dropna())
 
-#m31=m31data(1)
+def main():
+    m31=m31data(1)
+    m31.plot_hess()
+    
+main()
 
         
