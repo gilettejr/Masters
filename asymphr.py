@@ -118,31 +118,63 @@ class asymphr:
         
         #loop to read cis number for each object
         
-        for i in range(len(self.jcis)):
+        if self.filename=='M32_new.asc':
             
-            #logic statement returns TRUE if cis number in any waveband is not -1 or -2
+            print('yeet')
             
-            if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0) or (self.hcis[i] != -1.0 and self.hcis[i]!=-2.0) or (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0):
+            for i in range(len(self.jcis)):
                 
-                #if TRUE returned, data not plotted
+                 if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0 and self.jcis[i]!=-3.0) or (self.hcis[i] != -1.0 and self.hcis[i]!=-2.0 and self.hcis[i] !=3.0) or (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0 and self.kcis[i]!=-3.0):
+                    
+                    #if TRUE returned, data not plotted
+                    
+                    self.ra[i] = np.nan
+                    self.dec[i] = np.nan
+                    self.xj[i] = np.nan
+                    self.yj[i] = np.nan
+                    self.jmag[i] = np.nan
+                    self.jerr[i] = np.nan
+                    self.jcis[i] = np.nan
+                    self.xh[i] = np.nan
+                    self.yh[i] = np.nan
+                    self.hmag[i] = np.nan
+                    self.herr[i] = np.nan
+                    self.hcis[i] = np.nan
+                    self.xk[i] = np.nan
+                    self.yk[i] = np.nan
+                    self.kmag[i] = np.nan
+                    self.kerr[i] = np.nan
+                    self.kcis[i] = np.nan
                 
-                self.ra[i] = np.nan
-                self.dec[i] = np.nan
-                self.xj[i] = np.nan
-                self.yj[i] = np.nan
-                self.jmag[i] = np.nan
-                self.jerr[i] = np.nan
-                self.jcis[i] = np.nan
-                self.xh[i] = np.nan
-                self.yh[i] = np.nan
-                self.hmag[i] = np.nan
-                self.herr[i] = np.nan
-                self.hcis[i] = np.nan
-                self.xk[i] = np.nan
-                self.yk[i] = np.nan
-                self.kmag[i] = np.nan
-                self.kerr[i] = np.nan
-                self.kcis[i] = np.nan
+                
+        
+        else:
+    
+            for i in range(len(self.jcis)):
+                
+                #logic statement returns TRUE if cis number in any waveband is not -1 or -2
+                
+                if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0) or (self.hcis[i] != -1.0 and self.hcis[i]!=-2.0) or (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0):
+                    
+                    #if TRUE returned, data not plotted
+                    
+                    self.ra[i] = np.nan
+                    self.dec[i] = np.nan
+                    self.xj[i] = np.nan
+                    self.yj[i] = np.nan
+                    self.jmag[i] = np.nan
+                    self.jerr[i] = np.nan
+                    self.jcis[i] = np.nan
+                    self.xh[i] = np.nan
+                    self.yh[i] = np.nan
+                    self.hmag[i] = np.nan
+                    self.herr[i] = np.nan
+                    self.hcis[i] = np.nan
+                    self.xk[i] = np.nan
+                    self.yk[i] = np.nan
+                    self.kmag[i] = np.nan
+                    self.kerr[i] = np.nan
+                    self.kcis[i] = np.nan
     
     #redundant function with less rigourous cuts than ciscuts
     

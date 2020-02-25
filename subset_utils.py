@@ -68,6 +68,12 @@ class make_subsets:
             n147cross=topcatcross('N205_new_trimmed.unique',0)
             rmatch.topmatch(n147cross,'crossedn205.csv')
             
+            n147cross.delete_crossed_points()
+            n147cross.sbsextinction()
+            
+            n147cross.make_dataframe()
+            self.n147cross=n147cross
+            
         elif galaxy=='m32':
             n147cross=topcatcross('M32_new.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
@@ -145,6 +151,20 @@ class make_subsets:
                 selection_top = n147cross.select_C_stars(1.27,0.42,0.8,17.8)
                 
             self.top_subset=selection_top
+            
+        elif self.galaxy=='ngc205':
+            
+            if agb=='m':
+                
+                selection_top=n147cross.select_M_stars(0.97,1.44,0.52,18)
+            
+            elif agb=='c':
+                
+                selection_top=n147cross.select_C_stars(1.44,0.52,0.8,18)
+                
+            self.top_subset=selection_top
+            
+            
         
         #extinction carried out after subsets chosen
         

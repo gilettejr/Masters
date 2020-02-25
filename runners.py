@@ -13,6 +13,9 @@ from subset_utils import make_subsets
 from iso_utils import import_isos
 from crossmatching_utils import topcatcross,crossed_data
 
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 
 class run_cross:
     
@@ -36,6 +39,10 @@ class run_cross:
             n147culled.ciscuts()
             rmatch.topmatch(n147topcross,'crossedn147.csv')
             rmatch.vizmatch(n147vizcross,'n147_vizcross.csv')
+            n147vizcross.make_dataframe()
+            n147culled.make_dataframe()
+            self.n147vizcross=n147vizcross
+            self.n147culled=n147culled
             
             
             
@@ -44,11 +51,11 @@ class run_cross:
             rmatch.topmatch(n147cross,'crossedn185.csv')
             
         elif galaxy=='ngc205':
-            n147cross=topcatcross('N205_new_trimmed.unique',0)
-            rmatch.topmatch(n147cross,'crossedn205.csv')
+            n147topcross=topcatcross('N205_new_trimmed.unique',0)
+            rmatch.topmatch(n147topcross,'crossedn205.csv')
             
         elif galaxy=='m32':
-            n147cross=topcatcross('M32_new.asc',0)
+            n147topcross=topcatcross('M32_new.asc',0)
             rmatch.topmatch(n147cross,'crossedm32.csv')
             
         elif galaxy=='andromeda':
@@ -71,14 +78,12 @@ class run_cross:
         #dataframe set as topcatcross class attribute
         
         n147topcross.make_dataframe()
-        n147vizcross.make_dataframe()
-        n147culled.make_dataframe()
+
         
         #topcatcross object set as self class object attribute
         
         self.n147topcross=n147topcross
-        self.n147vizcross=n147vizcross
-        self.n147culled=n147culled
+
     def plot_topcross_cmd(self):
         plotter=graphs()
         plotter.plot_topmatch_cmd(self.n147topcross)
@@ -134,10 +139,10 @@ class kde_separator:
         
         
         
-        upper=18.4
+        upper=18.2
         lower=18
         
-        while lower > 15:
+        while lower > 15.6:
             
             jk= j-k
             hk= h-k
@@ -151,8 +156,8 @@ class kde_separator:
             print(len(binjk))
             self.plotter.cmd_kde(upper,lower,binjk)
             
-            upper=upper-0.4
-            lower=lower-0.4
+            upper=upper-0.2
+            lower=lower-0.2
             
     def kde_big(self):
         
@@ -269,6 +274,11 @@ class run_both:
             self.tra=9.7415417
             self.tdec=48.3373778
             
+        elif galaxy=='ngc205':
+            
+            self.tra=10.09189356
+            self.tdec=41.68541564
+            
         
         #plotter object set for plotting graphs
         
@@ -368,20 +378,6 @@ class run_both:
         ratio_top = C_top/M_top
         FEH_top=CM_to_FEH(ratio_top)
         
-        m_no_viz=[]
-        for i in self.mframe_viz.kmag:
-            if np.isnan(i)==False:
-                m_no_viz.append(0)
-        c_no_viz=[]   
-        for j in self.cframe_viz.kmag:
-            if np.isnan(j)==False:
-                c_no_viz.append(0)
-        
-        C_viz=len(c_no_viz)
-        M_viz=len(m_no_viz)
-        
-        ratio_viz = C_viz/M_viz
-        FEH_viz=CM_to_FEH(ratio_viz)
         
         print('Gaia crossmatch: C/M = ' + str(ratio_top) + ' and [Fe/H] = ' + str(FEH_top))
         
@@ -538,6 +534,203 @@ class run_both:
         plt.legend
         
         plt.show()
+        
+        
+    #same as above method, but splits so I can look at how m31 gradient affects things    
+    def c_over_m_split_plot(self,slice_size,outer_limit):
+        
+        def CM_to_FEH(CM):
+        
+            FEH=-1.39 -0.47*np.log10(CM)
+        
+            return(FEH)
+            
+        tra=self.tra
+        tdec=self.tdec
+        
+        vertex1=(9.697,41.389)
+        vertex2=(10.4909,41.389)
+        vertex3=(10.4909,41.989)
+        
+        nandvertex1=(tra,tdec)
+        nandvertex2=(9.697,tdec)
+        nandvertex3=(9.697,41.989)
+        nandvertex4=(tra,41.989)
+        
+        andvertex1=(tra,tdec)
+        andvertex2=(10.4909,tdec)
+        andvertex3=(10.4909,41.389)
+        andvertex4=(tra,41.389)
+        
+        
+        
+        
+        
+        
+        grad_seg=Polygon([vertex1,vertex2,vertex3])
+        
+        nand_seg=Polygon([nandvertex1,nandvertex2,nandvertex3,nandvertex4])
+        and_seg=Polygon([andvertex1,andvertex2,andvertex3,andvertex4])   
+        
+        mframe_and=self.mframe_top.copy()
+        cframe_and=self.cframe_top.copy()
+        mframe_nand=self.mframe_top.copy()
+        cframe_nand=self.cframe_top.copy()
+        
+        for i in range(len(mframe_and.ra)):
+            
+            if and_seg.contains(Point(mframe_and.ra[i],mframe_and.dec[i]))== False:
+                
+                mframe_and.loc[i]=np.nan
+                
+        for i in range(len(mframe_nand.ra)):
+            
+            if nand_seg.contains(Point(mframe_nand.ra[i],mframe_nand.dec[i]))== False:
+                
+                mframe_nand.loc[i]=np.nan
+                
+        for i in range(len(cframe_and.ra)):
+            
+            if and_seg.contains(Point(cframe_and.ra[i],cframe_and.dec[i]))==False:
+                
+                cframe_and.loc[i]=np.nan
+                
+        for i in range(len(cframe_nand.ra)):
+            
+            if nand_seg.contains(Point(cframe_nand.ra[i],cframe_nand.dec[i]))==False:
+                
+                cframe_nand.loc[i]=np.nan
+            
+                
+
+        
+        grad=slice_size
+        m_no_grad=[0]
+        c_no_grad=[0]
+        while grad < outer_limit:
+            
+            in_m_no_top=[]
+            for i in range(len(mframe_and.kmag)):
+                if np.isnan(mframe_and.ra[i])==False and np.sqrt((mframe_and.ra[i]-tra)**2+(mframe_and.dec[i]-tdec)**2) < grad/3600 :
+                    in_m_no_top.append(0)
+                    
+            in_c_no_top=[]
+            for i in range(len(cframe_and.kmag)):
+                if np.isnan(cframe_and.ra[i])==False and np.sqrt((cframe_and.ra[i]-tra)**2+(cframe_and.dec[i]-tdec)**2) < grad/3600 :
+                    in_c_no_top.append(0)
+        
+                
+            m_no_grad.append(len(in_m_no_top))
+            c_no_grad.append(len(in_c_no_top))
+        
+
+        
+        
+            grad=grad+slice_size
+            
+ 
+        
+
+           
+        m_slices=[]
+        for i in range(1,len(m_no_grad)):
+            m_slices.append(m_no_grad[i]-m_no_grad[i-1])
+        c_slices=[]
+        for j in range(1,len(c_no_grad)):
+            c_slices.append(c_no_grad[j]-c_no_grad[j-1])
+            
+        print(m_slices)
+        print(c_slices)
+        
+        m_slices=np.array(m_slices)    
+        c_slices=np.array(c_slices)
+        
+        CM_slices=c_slices/m_slices
+        
+        FEH_slices=CM_to_FEH(CM_slices)
+        
+        xdata=[]
+        for i in range(slice_size,(len(m_slices)+1)*slice_size,slice_size):
+            xdata.append(i)
+            
+        xdata=np.array(xdata)
+        
+        print(xdata)
+        print(FEH_slices)
+        
+        xdata_and=xdata
+        FEH_slices_and=FEH_slices
+        
+        grad=slice_size
+        m_no_grad=[0]
+        c_no_grad=[0]
+        while grad < outer_limit:
+            
+            in_m_no_top=[]
+            for i in range(len(mframe_nand.kmag)):
+                if np.isnan(mframe_nand.ra[i])==False and np.sqrt((mframe_nand.ra[i]-tra)**2+(mframe_nand.dec[i]-tdec)**2) < grad/3600 :
+                    in_m_no_top.append(0)
+                    
+            in_c_no_top=[]
+            for i in range(len(cframe_nand.kmag)):
+                if np.isnan(cframe_nand.ra[i])==False and np.sqrt((cframe_nand.ra[i]-tra)**2+(cframe_nand.dec[i]-tdec)**2) < grad/3600 :
+                    in_c_no_top.append(0)
+        
+                
+            m_no_grad.append(len(in_m_no_top))
+            c_no_grad.append(len(in_c_no_top))
+        
+        
+
+        
+        
+            grad=grad+slice_size
+            
+ 
+        
+
+           
+        m_slices=[]
+        for i in range(1,len(m_no_grad)):
+            m_slices.append(m_no_grad[i]-m_no_grad[i-1])
+        c_slices=[]
+        for j in range(1,len(c_no_grad)):
+            c_slices.append(c_no_grad[j]-c_no_grad[j-1])
+            
+        print(m_slices)
+        print(c_slices)
+        
+        m_slices=np.array(m_slices)    
+        c_slices=np.array(c_slices)
+        
+        CM_slices=c_slices/m_slices
+        
+        FEH_slices=CM_to_FEH(CM_slices)
+        
+        xdata=[]
+        for i in range(slice_size,(len(m_slices)+1)*slice_size,slice_size):
+            xdata.append(i)
+            
+        xdata=np.array(xdata)
+        
+        print(xdata)
+        print(FEH_slices)
+        
+        xdata_nand=-xdata
+        FEH_slices_nand=FEH_slices
+        
+        xdata=np.concatenate((xdata_nand,xdata_and))
+        FEH=np.concatenate((FEH_slices_nand,FEH_slices_and))
+        
+        plt.scatter(xdata,FEH,marker='o',label='[Fe/H] Gradient')
+        plt.xlabel('Radial Distance/arcsecs')
+        plt.ylabel('[Fe/H]/dex')
+        plt.legend
+        
+        plt.show()
+                
+        
+                
             
             
             

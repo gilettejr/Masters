@@ -14,6 +14,7 @@ from iso_utils import import_isos
 
 ##185 centre: 9.7415417, 48.3373778
 ##147 centre: 8.3005, 48.5087389
+##205 centre : 10.09189356, 41.68541564
 
 #andromeda, roughly 8 deg field
 
@@ -22,13 +23,14 @@ from iso_utils import import_isos
 def main():  
         
     
+    
+    #g=kde_separator('ngc205')
+    #g.kde_graph_test()
+    
+    e=run_both('ngc205')
+    e.c_over_m_split_plot(100,1000)
+    
 
-    
-    g=run_both('ngc147')
-    g.c_over_m_grad_topviz(70)
-    
-   # f=import_isos('ngc185','Isochrones/z00106.dat')
-   # f.overlay_agb_tip()
     
 
     

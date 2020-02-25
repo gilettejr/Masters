@@ -224,7 +224,7 @@ class crossall:
                 
                 axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
                 
-                if (i%2==0 and i!=0) or i==len(self.sedindices)-1:
+                if (i%1==0 and i!=0) or i==len(self.sedindices)-1:
                     
                     print('yeet')
                 
@@ -282,7 +282,7 @@ class crossall:
                 
                 axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
                 
-                if (i%15==0 and i!=0) or i==len(j)-1:
+                if (i%1==0 and i!=0) or i==len(j)-1:
                     
                     print('yeet')
                 
@@ -317,8 +317,7 @@ class crossall:
                         fig,axs=plt.subplots(3,1)
                 
                 
-
-        
+#2868 potential nebula
 
 def main():
     

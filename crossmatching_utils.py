@@ -502,3 +502,8 @@ class topcatstuff:
         n147cross.loadascii()
         n147cross.ciscuts()
         n147cross.load_ascii_to_cross()
+        
+
+t=topcatstuff()
+
+t.fit_for_cross('N205_new_trimmed.unique')

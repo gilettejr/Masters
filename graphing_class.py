@@ -13,6 +13,8 @@ from asymphr import asymphr
 from astropy import stats
 from astropy.stats.histogram import knuth_bin_width
 from scipy.stats import gaussian_kde
+from HESSCMD import plotHess
+from crossmatching_utils import topcatcross
 #class containing methods for plotting various graphs from analysis output
 
 class graphs:
@@ -99,12 +101,15 @@ class graphs:
         
         #cuts performed, extinction correction not necessary
         
+        self.tra=10.09189356
+        self.tdec=41.68541564
         
         #plot formatted and labelled
         plt.figure()
         
         plt.rc('axes',labelsize = 20)
         plt.scatter(target.ra,target.dec,s=3,marker = 'o',color='blue',alpha = 1)
+        #plt.plot([self.tra,10.68470833],[self.tdec,41.26875])
         plt.xlabel('RA(J200)/deg')
         plt.ylabel('Dec(J200)/deg')
         #plt.title(target.filename + ' Spatial Plot')
@@ -277,7 +282,7 @@ class graphs:
         plt.rc('axes',labelsize=20)
         
         plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data')
-        plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
+        plt.scatter(cross.topcrossjmag-cross.topcrosskmag,cross.topcrosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
         
         
         
@@ -617,22 +622,22 @@ class basic_graphs:
         
         if galaxy=='ngc147':
         
-            n147 = asymphr('lot_n147.unique',0)
+            n147 = topcatcross('lot_n147.unique',0)
 
             
         elif galaxy== 'ngc185':
-            n147 = asymphr('lot_n185.unique',0)
+            n147 = topcatcross('lot_n185.unique',0)
 
             
         elif galaxy=='ngc205':
-            n147 = asymphr('N205_new_trimmed.unique',0)
+            n147 = topcatcross('N205_new_trimmed.unique',0)
 
             
         elif galaxy=='m32':
-            n147=asymphr('M32_new.asc',0)
+            n147=topcatcross('M32_new.asc',0)
             
         elif galaxy=='andromeda':
-            n147=asymphr('lot_m31.unique',0)
+            n147=topcatcross('lot_m31.unique',0)
             
         #error returned if galaxy not recognised 
         
@@ -644,7 +649,7 @@ class basic_graphs:
         n147.loadascii()
         n147.ciscuts()
         n147.sbsextinction()
-
+        n147.make_dataframe()
         
         #data set as class attribute for running class methods
         
@@ -676,3 +681,23 @@ class basic_graphs:
         
     def plot_xy_spatial(self):
         self.plotter.xy_spatial_plot(self.n147)
+        
+    def plot_hess(self):
+        n147=self.n147.wfdat
+        
+        if self.galaxy=='ngc205':
+        
+            plotHess(n147.kmag.dropna(),n147.jmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma)
+            
+        elif self.galaxy=='andromeda':
+            
+            plotHess(n147.kmag.dropna(),n147.jmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma,levels=150)
+            
+
+            
+    def plot_cchess(self):
+        n147=self.n147.wfdat
+        
+        plotHess(n147.jmag.dropna()-n147.hmag.dropna(),n147.hmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma,levels=150)
+
+        
