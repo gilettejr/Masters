@@ -302,7 +302,7 @@ class topcatcross(asymphr):
     
     #returns dataframe only containing M star candidates based on hard colour cuts
     
-    def select_M_stars(self,j_kmin,j_kmax,h_kmax,minkmag):
+    def select_M_stars(self,j_kmin,j_kmax,h_kmax,j_hmax,minkmag):
         
         #copy made to protect original dataframe
         
@@ -317,7 +317,7 @@ class topcatcross(asymphr):
                 continue
             
             
-            elif d.kmag[i] > minkmag or j_kmin > d.jmag[i]-d.kmag[i] or d.jmag[i]-d.kmag[i] > j_kmax or  d.hmag[i]-d.kmag[i] > h_kmax:
+            elif d.kmag[i] > minkmag or j_kmin > d.jmag[i]-d.kmag[i] or d.jmag[i]-d.kmag[i] > j_kmax or (d.hmag[i]-d.kmag[i] > h_kmax and d.jmag[i]-d.hmag[i]>j_hmax):
                 
                 #entire row wiped if conditions not met
 

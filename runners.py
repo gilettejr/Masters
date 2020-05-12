@@ -47,8 +47,8 @@ class run_cross:
             
             
         elif galaxy== 'ngc185':
-            n147cross = topcatcross('lot_n185.unique',0)
-            rmatch.topmatch(n147cross,'crossedn185.csv')
+            n147topcross = topcatcross('lot_n185.unique',0)
+            rmatch.topmatch(n147topcross,'crossedn185.csv')
             
         elif galaxy=='ngc205':
             n147topcross=topcatcross('N205_new_trimmed.unique',0)
@@ -72,7 +72,7 @@ class run_cross:
         
         
         #tangent point topcatcross class attributes created
-        
+        n147topcross.sbsextinction()
         n147topcross.create_tangent_coords(8.300500,48.50850)
         
         #dataframe set as topcatcross class attribute
@@ -98,6 +98,16 @@ class run_cross:
         plotter=graphs()
         plotter.plot_viztop_cmd(self.n147topcross,self.n147vizcross)
         
+    def plot_gaia_culled_cmd(self):
+        self.n147topcross.delete_crossed_points()
+        plotter=graphs()
+        a=asymphr('N205_new_trimmed.unique',0)
+        a.loadascii()
+        a.ciscuts()
+        a.sbsextinction()
+        
+        plotter.plot_viztop_cmd(a,self.n147topcross)
+        
     def plot_culled_cmd(self):
         self.n147topcross.delete_crossed_points()
         self.n147vizcross.delete_uncrossed_points_in_defined_area('vizdat.csv')   
@@ -106,8 +116,21 @@ class run_cross:
         
         plotter=graphs()
         plotter.plot_culled_viztop_cmd(self.n147culled)
-        
+    
+    def plot_gaiacrossed_cmd(self):
+        self.n147topcross.delete_crossed_points()
 
+        
+        plotter=graphs()
+        plotter.kj_cmd(self.n147topcross)
+        
+    def plot_gaiacrossed_cc(self):
+        self.n147topcross.delete_crossed_points()
+
+        
+        plotter=graphs()
+        plotter.colour_colour(self.n147topcross)
+    
     def kde(self):
         self.n147topcross.delete_crossed_points()
         self.n147vizcross.delete_uncrossed_points()     
@@ -300,7 +323,7 @@ class run_both:
         tdec=self.tdec
         
         #spatial distribution plotted
-        self.plotter.agb_spatial_plot_standard(self.cframe,self.mframe,tra,tdec)
+        self.plotter.agb_spatial_plot_standard(self.cframe_top,self.mframe_top,tra,tdec)
     
     #plots agb star luminosity functions
     
@@ -527,11 +550,12 @@ class run_both:
         
         print(xdata)
         print(FEH_slices)
-        
-        plt.plot(xdata,FEH_slices,marker='o',label='[Fe/H] Gradient')
-        plt.xlabel('Radial Distance/arcsecs')
-        plt.ylabel('[Fe/H]/dex')
-        plt.legend
+        plt.rc('axes',labelsize=15)
+        plt.errorbar(xdata,FEH_slices,xerr=0.2,yerr=0.2,capsize=10,ecolor='black',linestyle='none',marker='x',color='black',markersize=10)
+        m,b=np.polyfit(xdata,FEH_slices,1)
+        plt.plot(xdata,m*xdata+b)
+        plt.xlabel('Radial Distance/arcsec')
+        plt.ylabel('[Fe/H]')
         
         plt.show()
         
@@ -722,10 +746,34 @@ class run_both:
         xdata=np.concatenate((xdata_nand,xdata_and))
         FEH=np.concatenate((FEH_slices_nand,FEH_slices_and))
         
-        plt.scatter(xdata,FEH,marker='o',label='[Fe/H] Gradient')
-        plt.xlabel('Radial Distance/arcsecs')
-        plt.ylabel('[Fe/H]/dex')
-        plt.legend
+        xdatleft=[]
+        FEHleft=[]
+        xdatright=[]
+        FEHright=[]
+        for i in range(len(xdata)):
+            if xdata[i]<0:
+                xdatleft.append(xdata[i])
+                FEHleft.append(FEH[i])
+            elif xdata[i]>0:
+                xdatright.append(xdata[i])
+                FEHright.append(FEH[i])
+        
+        xdatleft=np.array(xdatleft)
+        FEHdatleft=np.array(FEHleft)
+        xdatright=np.array(xdatright)
+        FEHdatright=np.array(FEHright)
+        
+        plt.rc('axes',labelsize=15)
+        plt.errorbar(xdata,FEH,yerr=0.2,ecolor='black',marker='x',color='black',linestyle='none',markersize=10,capsize=10)
+        m1,b1=np.polyfit(xdatleft,FEHdatleft,1)
+        m2,b2=np.polyfit(xdatright,FEHdatright,1)
+        plt.plot(xdatleft,m1*xdatleft+b1)
+        plt.plot(xdatright,m2*xdatright+b2)
+        
+        
+                
+        plt.xlabel('Radial Distance/arcsec')
+        plt.ylabel('[Fe/H]')
         
         plt.show()
                 

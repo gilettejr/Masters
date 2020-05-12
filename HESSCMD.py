@@ -11,7 +11,7 @@ matplotlib.rc('font',family='Bitstream Vera Serif')
 
 
 
-def plotHess(mag, color, levels='None', xlims=[-1,3], ylims=[28,20], colormap=cm.plasma, cbarr='Yes', cbarrtitle='', xlab='', ylab='', saveas='HessCMD.png'):
+def plotHess(mag, color, levels=100, xlims=[-1,4.5], ylims=[21,11], colormap=cm.plasma, cbarr='None', cbarrtitle='', xlab='$J_0$-$K_0$', ylab='$K_0$', saveas='HessCMD.png'):
     """
     plotHess(mag,color) is a function intended to create a contour plot of stellar density in the canonical Color-Magnitude Diagram (CMD). plotHess() plots all the stars in the CMD and then overplots a contour of their density.
     mag = magnitudes of the stars
@@ -36,14 +36,15 @@ def plotHess(mag, color, levels='None', xlims=[-1,3], ylims=[28,20], colormap=cm
     """
     ### Set figure options
     fig = pylab.figure(1, figsize=(8, 7))
-    
+    rc('axes',labelsize=25)
     ### Plot all stars in CMD as small points
     plot(color,mag,'ko',ms=0.2,zorder=1)
     ylabel(ylab)
     xlabel(xlab)
 
+
     ### Use color and magnitude data to split and average into a binned 2D histogram
-    Z, xedges, yedges = np.histogram2d(color,mag,bins=(10000,10000))
+    Z, xedges, yedges = np.histogram2d(color,mag,bins=(100,100))
     
     ### Find the cell centers from the cell edges
     x = 0.5*(xedges[:-1] + xedges[1:])
@@ -70,6 +71,7 @@ def plotHess(mag, color, levels='None', xlims=[-1,3], ylims=[28,20], colormap=cm
         cbar_ax = fig.add_axes([0.91, 0.14, 0.02, 0.7])
         d=fig.colorbar(cntr, cax=cbar_ax)#, title=cbarrtitle)
         d.set_label(label=cbarrtitle,size=10)
+    
 
     ### Set final options and save figure to default (current folder) or to a user-defined location on disk
     #savefig(saveas,dpi=300)

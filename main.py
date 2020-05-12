@@ -10,25 +10,35 @@ from runners import run_both,run_rgb,run_cross,kde_separator
 from graphing_class import basic_graphs,graphs
 from crossmatching_utils import topcatstuff
 from iso_utils import import_isos
+import numpy as np
 #class for reading in and plotting ascii file data
 
 ##185 centre: 9.7415417, 48.3373778
 ##147 centre: 8.3005, 48.5087389
 ##205 centre : 10.09189356, 41.68541564
+####32 centre 10.6742708, 40.8651694
 
 #andromeda, roughly 8 deg field
 
 #for kde method, start at 18, go upwards in bins of mag=0.4
 
-def main():  
+def main():
+    
+    
+    g=basic_graphs('ngc147')
+    g.plot_kj_cmd()
+    
+    i=import_isos('ngc147','Isochrones/fini.dat')
+    i.overlay_agb_single()
         
     
+
     
-    #g=kde_separator('ngc205')
-    #g.kde_graph_test()
+
     
-    e=run_both('ngc205')
-    e.c_over_m_split_plot(100,1000)
+
+    
+    
     
 
     

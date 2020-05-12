@@ -39,11 +39,12 @@ class crossall:
         print(data)
                 
                 
-        data.to_csv('NGC185_pandcut.csv')
+        data.to_csv('NGC205_pandcut.csv')
     
     def make_cmd(self,infile):
         
         data=pd.read_csv(infile)
+            
         
         self.ra=data.ra_1
         self.dec=data.dec_1
@@ -57,10 +58,14 @@ class crossall:
         jmag=[]
         kmag=[]
         
+        if infile=='ngc147_sed.csv':
+        
+            a=asymphr('lot_n147.unique',0)
+        
+        elif infile=='ngc205_sed.csv':
             
-        
-        
-        a=asymphr('lot_n147.unique',0)
+            a=asymphr('N205_new_trimmed.unique',0)
+            
         a.loadascii()
         a.sbsextinction()
         
@@ -78,8 +83,13 @@ class crossall:
         self.jmag=np.array(jmag)
         self.kmag=np.array(kmag)
         
-        plotter=graphs()
-        plotter.kj_cmd(self)
+        plt.figure()
+        plt.rc('axes',labelsize=12)
+        plt.scatter(self.jmag-self.kmag,self.kmag,s=3,marker='o',color='black')
+        plt.ylabel('$K_0$')
+        plt.xlabel('$J_0$-$K_0$')
+        plt.gca().invert_yaxis()
+        plt.show()
         
     def pandaviz_extinction(self):
         
@@ -136,7 +146,7 @@ class crossall:
         indices=[]
         
         for i in range(len(self.index)):
-            if xmin<j_k[i]<xmax and ymin<kmag[i]<ymax:
+            if (xmin<j_k[i]<xmax) and (ymin<kmag[i]<ymax):
                 #indices holds the indices of all the stars we want to keep
                 indices.append(self.index[i])
         
@@ -149,8 +159,8 @@ class crossall:
         self.sedindices=locind
         print(self.sedindices)
         
-        plotter=graphs()
-        plotter.kj_cmd_select(self,xmin,xmax,ymin,ymax)
+        #plotter=graphs()
+        #plotter.kj_cmd_select(self,xmin,xmax,ymin,ymax)
         
         
     def plot_sed(self):
@@ -194,7 +204,7 @@ class crossall:
         xticks=np.concatenate((micwaves,np.array([1])))
         
         
-        fig,axs=plt.subplots(3,1)
+        plt.figure()
         
         j=self.sedindices
         
@@ -218,28 +228,28 @@ class crossall:
             
                 
                 
-                axs[0].plot(micwaves,ydata,marker='o',label = 'SED Index ' + str(j[i]))
+                plt.plot(micwaves,ydata,marker='o',color='black',label = 'SED Index ' + str(j[i]))
                 
-                axs[1].plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
+                #plt.plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
                 
-                axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
+                #axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
                 
                 if (i%1==0 and i!=0) or i==len(self.sedindices)-1:
                     
                     print('yeet')
                 
-                    axs[0].set_yscale('log')
-                    axs[0].set_xscale('log')
-                    axs[0].set_ylabel('v$F_v$(Hz Jy)')
-                    axs[0].set_xlabel('wavelength(um)')
+                    plt.yscale('log')
+                    plt.xscale('log')
+                    plt.ylabel('$\\nu$$F_ \\nu $/(Hz Jy)')
+                    plt.xlabel('$\lambda$/$\mu$m')
                     
-                    axs[1].set_ylabel('Dec')
-                    axs[1].set_xlabel('RA')
-                    axs[1].set_ylim(48.05,48.95)
-                    axs[1].set_xlim(7.6,9.0)
+                    #axs[1].set_ylabel('Dec')
+                    #axs[1].set_xlabel('RA')
+                    #axs[1].set_ylim(48.05,48.95)
+                    #axs[1].set_xlim(7.6,9.0)
                     
-                    axs[2].set_ylabel('$K_0$')
-                    axs[2].set_xlabel('$J_0$-$K_0$')
+                    #axs[2].set_ylabel('$K_0$')
+                    #axs[2].set_xlabel('$J_0$-$K_0$')
                     
             
             #for i in range(len(micwaves)):
@@ -248,7 +258,7 @@ class crossall:
                 
                 #print(micwaves[i],ydata[i])
                 
-                    plt.legend()
+                    #plt.legend()
             
     
                     
@@ -256,7 +266,7 @@ class crossall:
                     
                     if i!=len(self.sedindices)-1:
                     
-                        fig,axs=plt.subplots(3,1)
+                        plt.figure()
                         
         elif choice=='f':
             
@@ -276,28 +286,28 @@ class crossall:
             
                 
                 
-                axs[0].plot(micwaves,ydata,marker='o',label = 'SED Index ' + str(j[i]))
+                plt.plot(micwaves,ydata,marker='o',color='black',label = 'SED Index ' + str(j[i]))
                 
-                axs[1].plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
+                #axs[1].plot(self.ra[j[i]],self.dec[j[i]],marker='o',label='SED Index' + str(j[i]))
                 
-                axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
+                #axs[2].scatter(self.jmag[j[i]]-self.kmag[j[i]],self.kmag[j[i]],marker='o',label='SED Index ' + str(j[i]))
                 
                 if (i%1==0 and i!=0) or i==len(j)-1:
                     
                     print('yeet')
                 
-                    axs[0].set_yscale('log')
-                    axs[0].set_xscale('log')
-                    axs[0].set_ylabel('v$F_v$(Hz Jy)')
-                    axs[0].set_xlabel('wavelength(um)')
+                    plt.yscale('log')
+                    plt.xscale('log')
+                    plt.ylabel('$\\nu$$F_\\nu$/(Hz Jy)')
+                    plt.xlabel('$\lambda$/$\mu$m')
                     
-                    axs[1].set_ylabel('Dec')
-                    axs[1].set_xlabel('RA')
-                    axs[1].set_ylim(48.05,48.95)
-                    axs[1].set_xlim(7.6,9.0)
+                    #axs[1].set_ylabel('Dec')
+                    #axs[1].set_xlabel('RA')
+                    #axs[1].set_ylim(48.05,48.95)
+                    #axs[1].set_xlim(7.6,9.0)
                     
-                    axs[2].set_ylabel('$K_0$')
-                    axs[2].set_xlabel('$J_0$-$K_0$')
+                    #axs[2].set_ylabel('$K_0$')
+                    #axs[2].set_xlabel('$J_0$-$K_0$')
                     
             
             #for i in range(len(micwaves)):
@@ -306,7 +316,7 @@ class crossall:
                 
                 #print(micwaves[i],ydata[i])
                 
-                    plt.legend()
+                    #plt.legend()
             
     
                     
@@ -314,7 +324,7 @@ class crossall:
                     
                     if i!=len(self.sedindices)-1:
                     
-                        fig,axs=plt.subplots(3,1)
+                        plt.figure()
                 
                 
 #2868 potential nebula
@@ -325,7 +335,7 @@ def main():
     
     choice=input()
     
-    c = crossall('NGC147_pand.csv')
+    c = crossall('NGC205_pand.csv')
     c.make_cmd('ngc147_sed.csv')
     c.pandaviz_extinction()
     
@@ -335,7 +345,7 @@ def main():
     
             
         c = crossall('NGC147_pand.csv')
-        c.make_cmd('ngc147_sed.csv')
+        c.make_cmd('ngc205_sed.csv')
         c.pandaviz_extinction()
         
         print('Please input coordinates for a box containing the stars you want to see an SED for\n')
@@ -356,7 +366,11 @@ def main():
         
     elif choice=='c':
         
-        c.choose_stars(1.33,20,0,18)
+        #c.choose_stars(1.33,20,0,18)
+        
+        #205
+        
+        c.choose_stars(1.44,20,0,17.8)
         
     elif choice=='m':
         
@@ -365,3 +379,4 @@ def main():
     c.plot_sed()
     
 main()
+    

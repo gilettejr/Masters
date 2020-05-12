@@ -102,6 +102,8 @@ class asymphr:
         self.kerr = kerr
         self.kcis = kcis
         
+        
+        
         #index array created for crossmmatching functionality
         
         index = []

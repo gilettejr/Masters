@@ -120,27 +120,27 @@ class make_subsets:
             
                 #balanced selection
             
-                #selection_top=n147cross.select_M_stars(1.0,1.33,0.44,18)
+                selection_top=n147cross.select_M_stars(1.0,1.33,0.44,0.83,18)
                 
-                #selection_viz=n147vizcross.select_M_stars(1.0,1.33,0.44,18)
+                selection_viz=n147vizcross.select_M_stars(1.0,1.33,0.44,0.83,18)
                 
                 #low c selection
                 
-                selection_top=n147cross.select_M_stars(0.95,1.38,0.55,18)
+                #selection_top=n147cross.select_M_stars(0.95,1.38,0.55,18)
                 
-                selection_viz=n147vizcross.select_M_stars(0.95,1.38,0.55,18)
+                #selection_viz=n147vizcross.select_M_stars(0.95,1.38,0.55,18)
                 
             elif agb=='c':
                 
                 #balanced
                 
-                #selection_top=n147cross.select_C_stars(1.33,0.44,0.83,18)
-                #selection_viz=n147vizcross.select_C_stars(1.33,0.44,0.83,18)
+                selection_top=n147cross.select_C_stars(1.33,0.44,0.83,18)
+                selection_viz=n147vizcross.select_C_stars(1.33,0.44,0.83,18)
                 
                 #low c selection
                 
-                selection_top=n147cross.select_C_stars(1.38,0.55,0.85,18)
-                selection_viz=n147vizcross.select_C_stars(1.38,0.55,0.85,18)
+                #selection_top=n147cross.select_C_stars(1.38,0.55,0.85,18)
+                #selection_viz=n147vizcross.select_C_stars(1.38,0.55,0.85,18)
                 
 
             #error printed if neither 'm' nor 'c' is chosen
@@ -158,7 +158,7 @@ class make_subsets:
             if agb=='m':
                 #parameters chosen using paper and visual inspection of cmd
                 #should also verify with isochrones and other red giant branch finding methods
-                selection_top = n147cross.select_M_stars(0.96,1.27,0.42,17.8)
+                selection_top = n147cross.select_M_stars(0.96,1.27,0.42,0.8,17.8)
                 
             elif agb=='c':
                 
@@ -170,7 +170,7 @@ class make_subsets:
             
             if agb=='m':
                 
-                selection_top=n147cross.select_M_stars(0.97,1.44,0.52,18)
+                selection_top=n147cross.select_M_stars(0.97,1.44,0.52,0.8,18)
             
             elif agb=='c':
                 

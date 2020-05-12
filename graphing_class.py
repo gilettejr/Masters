@@ -19,6 +19,16 @@ from crossmatching_utils import topcatcross
 
 class graphs:
     
+    def __init__(self):
+        
+        def quadrat(a,b):
+            
+            c=np.sqrt(a**2+b**2)
+            
+            return c
+        self.mag=quadrat
+            
+            
         
     #method produces K-J CMD, taking in asymphr or asympher inherited objects as input    
 
@@ -32,11 +42,47 @@ class graphs:
         #plot formatted and labelled
 
         #plt.style.use('presentation')
-        plt.rc('axes',labelsize = 20)
-        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
+        plt.rc('axes',labelsize = 15)
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1,color='black')
+        
+        jerrval=[]
+        herrval=[]
+        kerrval=[]
+        
+        yerrpos=np.array([20,19,18,17,16,15,14,13])
+        xerrpos=np.zeros(len(yerrpos))
+        xerrpos=xerrpos-1
+        
+        for j in yerrpos:
+            
+            for i in range(len(target.jmag)):
+                
+                if np.isnan(target.jmag[i])==False:
+                    
+                    if (j-0.05) <target.kmag[i] < (j+0.05):
+                        
+                        jerrval.append(target.jerr[i])
+                        herrval.append(target.herr[i])
+                        kerrval.append(target.kerr[i])
+                        
+                        break
+        
+        jerrval=np.array(jerrval)
+        herrval=np.array(herrval)
+        kerrval=np.array(kerrval)
+        
+        print(kerrval)
+        
+        xerrval=self.mag(jerrval,kerrval)
+        yerrval=kerrval
+                
+        #plt.errorbar(xerrpos,yerrpos,xerr=xerrval,yerr=yerrval,ecolor='red',linestyle='none')
+        #plt.ylim(11,21)
+        #plt.xlim(-1.5,4.5)
         plt.gca().invert_yaxis()
-        plt.ylabel('K')
-        plt.xlabel('J-K')
+        plt.ylabel('$K_0$')
+        plt.xlabel('$J_0$-$K_0$')
+        
         #plt.title(target.filename + ' CMD')
 
         plt.show()
@@ -87,14 +133,55 @@ class graphs:
         #plot formatted and labelled
 
         #plt.style.use('presentation')
-        plt.rc('axes',labelsize = 20)
-        plt.scatter(target.hmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1)
+        plt.rc('axes',labelsize = 15)
+        plt.scatter(target.hmag-target.kmag,target.kmag,s=3,marker='o',alpha = 1,color='black')
+        
+        jerrval=[]
+        herrval=[]
+        kerrval=[]
+        
+        yerrpos=np.array([20,19,18,17,16,15])
+        xerrpos=np.zeros(len(yerrpos))
+        xerrpos=xerrpos-1
+        
+        for j in yerrpos:
+            
+            for i in range(len(target.jmag)):
+                
+                if np.isnan(target.jmag[i])==False:
+                    
+                    if (j-0.05) <target.kmag[i] < (j+0.05):
+                        
+                        jerrval.append(target.jerr[i])
+                        herrval.append(target.herr[i])
+                        kerrval.append(target.kerr[i])
+                        
+                        break
+        
+        jerrval=np.array(jerrval)
+        herrval=np.array(herrval)
+        kerrval=np.array(kerrval)
+        
+        print(kerrval)
+        
+        xerrval=self.mag(herrval,kerrval)
+        yerrval=kerrval
+                
+        plt.errorbar(xerrpos,yerrpos,xerr=xerrval,yerr=yerrval,ecolor='red',linestyle='none')
+        plt.ylim(11,21)
+        plt.xlim(-1.5,4.5)
         plt.gca().invert_yaxis()
-        plt.ylabel('K')
-        plt.xlabel('H-K')
+        plt.ylabel('$K_0$')
+        plt.xlabel('$H_0$-$K_0$')
+        
         #plt.title(target.filename + ' CMD')
-        plt.style.use('ggplot')
+
         plt.show()
+        
+        #ngc147 cut
+        
+        #plt.axvline(x=1.34,linestyle=':',color='black')
+        #plt.axhline(y=18,linestyle=':',color='black')
     #method plots spatial distribution from target class or dataframe
 
     def spatial_plot(self,target):
@@ -152,11 +239,13 @@ class graphs:
         xi = xi * (180/np.pi)
         eta = eta *(180/np.pi)
         
-        plt.rc('axes',labelsize = 20)
-        plt.scatter(xi,eta,s=3,marker = 'o',alpha=0.5)
+        plt.rc('axes',labelsize = 15)
+        plt.plot(xi,eta,linestyle='none',marker = 'o',markersize=1,color='black')
+        plt.xlim(-0.3,0.3)
+        plt.ylim(-0.3,0.3)
         plt.gca().invert_xaxis()
-        plt.gca().set_ylabel(r'$\eta$')
-        plt.gca().set_xlabel(r'$\xi$')
+        plt.gca().set_ylabel(r'$\eta$/degrees')
+        plt.gca().set_xlabel(r'$\xi$/degrees')
         
     #method plots tangent point co-ordinate spatial distribution of two subsets of stars
     #process is simply duplicated version of method spatial_plot_standard for two subsets
@@ -188,14 +277,16 @@ class graphs:
         
         mxi = mxi * (180/np.pi)
         meta = meta *(180/np.pi)
-        plt.style.use('seaborn-white')
-        plt.rc('axes',labelsize = 20)
-        plt.scatter(cxi,ceta,s=3,marker = 'o',alpha=0.5,label='C-Star Candidates')
-        plt.scatter(mxi,meta,s=3,marker = 'o',alpha=0.5,label='M-Star Candidates')
-        plt.gca().set_ylabel(r'$\eta$')
-        plt.gca().set_xlabel(r'$\xi$')
+        #plt.style.use('seaborn-white')
+        plt.rc('axes',labelsize = 15)
+        plt.scatter(cxi,ceta,s=3,marker = 'o',alpha=1,color='black',label='C-Star Candidates')
+        plt.scatter(mxi,meta,s=3,marker = 'o',alpha=1,color='black',label='M-Star Candidates')
+        plt.xlim(-0.3,0.3)
+        plt.ylim(-0.3,0.3)
+        plt.gca().set_ylabel(r'$\eta$\degrees')
+        plt.gca().set_xlabel(r'$\xi$\degrees')
         plt.gca().invert_xaxis()
-        plt.legend()
+        #plt.legend()
         plt.show()
         
     #method for plotting single subset spatial distribution in tangent co-ordinates
@@ -224,18 +315,18 @@ class graphs:
         
         #plot formatted and labelled
         
-        plt.rc('axes',labelsize = 20)
+        plt.rc('axes',labelsize = 15)
         #graph is in the format: (j-k)/(h-k)
-        plt.scatter(target.hmag - target.kmag,target.jmag-target.hmag,s=1,marker=',',alpha = 0.5)
-        plt.ylabel('(J-$H)_0$')
-        plt.xlabel('(H-$K)_0$')
+        plt.scatter(target.hmag - target.kmag,target.jmag-target.hmag,s=3,marker='o',color='black')
+        plt.ylabel('$J_0$-$H_0$')
+        plt.xlabel('$H_0$-$K_0$')
         #plt.title(target.filename + 'Colour-colour diagram')
         
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         
         #line for ngc147 hard colour C cut, Y-J sohn et al.
         
-        plt.axvline(x=0.44,linestyle=':',color='black')
+        #plt.axvline(x=0.44,linestyle=':',color='black')
         #plt.axhline(y=1.34,linestyle=':',color='black')
     
     
@@ -279,17 +370,17 @@ class graphs:
     
     def plot_topmatch_cmd(self,cross):
                     
-        plt.rc('axes',labelsize=20)
+        plt.rc('axes',labelsize=15)
         
-        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data')
-        plt.scatter(cross.topcrossjmag-cross.topcrosskmag,cross.topcrosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Gaia DR2 catalogue')
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,color='black',label='Non-contaminants')
+        plt.scatter(cross.topcrossjmag-cross.topcrosskmag,cross.topcrosskmag,s=3,marker='o',color='red',alpha=1,label='Foreground contaminants')
         
         
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
-        plt.xlabel('$(J-K)_0$')
-        plt.style.use('ggplot')
+        plt.xlabel('$J_0$-$K_0$')
+        #plt.style.use('ggplot')
         plt.legend()
         
         plt.show()
@@ -299,36 +390,35 @@ class graphs:
     
     def plot_vizmatch_cmd(self,cross):
                     
-        plt.rc('axes',labelsize=20)
+        plt.rc('axes',labelsize=15)
         
-        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data')
-        plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Vizier IR Catalogue')
+        plt.scatter(cross.jmag-cross.kmag,cross.kmag,s=3,marker='o',alpha=1,color='red',label='Foreground contaminants')
+        plt.scatter(cross.crossjmag-cross.crosskmag,cross.crosskmag,s=3,marker='o',alpha=1,color='black',label='Non-contaminants')
         
         
         
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
-        plt.xlabel('$(J-K)_0$')
-        plt.style.use('ggplot')
+        plt.xlabel('$J_0$-$K_0$')
+        #plt.style.use('ggplot')
         plt.legend()
         
         plt.show()
         
     #graphing method to plot cmd from WFCAM data with Gaia crossmatched data subtracted, and Vizier uncrossmatched data subtra
-    def plot_viztop_cmd(self,topcross,vizcross):
-        plt.rc('axes',labelsize=20)
+    def plot_viztop_cmd(self,target,topcross):
+        plt.rc('axes',labelsize=15)
         
         
 
 
-
-        plt.scatter(topcross.jmag-topcross.kmag,topcross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data with Gaia DR2 crossmatched data subtracted')
-        plt.scatter(vizcross.jmag-vizcross.kmag,vizcross.kmag,s=3,marker='o',alpha=1,label='UKIRT Data crossmatched with Vizier IR Catalogue')
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=3,marker='o',color='red',alpha=1,label='Foreground contaminants')
+        plt.scatter(topcross.jmag-topcross.kmag,topcross.kmag,s=3,marker='o',alpha=1,color='black',label='Non-contaminants')
 
                 
         plt.gca().invert_yaxis()
         plt.ylabel('$K_0$')
-        plt.xlabel('$(J-K)_0$')
+        plt.xlabel('$J_0$-$K_0$')
         plt.legend()
         
         plt.show()
@@ -639,6 +729,9 @@ class basic_graphs:
         elif galaxy=='andromeda':
             n147=topcatcross('lot_m31.unique',0)
             
+        elif galaxy=='ngc205_old':
+            n147=topcatcross('N205_two.asc',0)
+            
         #error returned if galaxy not recognised 
         
         else:
@@ -675,8 +768,6 @@ class basic_graphs:
 
         self.plotter.spatial_plot(self.n147)
         
-
-        
     #uses the graphs().xy_spatial_plot method to plot an xy pixel distribution using class attribute data    
         
     def plot_xy_spatial(self):
@@ -685,7 +776,7 @@ class basic_graphs:
     def plot_hess(self):
         n147=self.n147.wfdat
         
-        if self.galaxy=='ngc205':
+        if self.galaxy=='ngc205' or self.galaxy=='ngc185':
         
             plotHess(n147.kmag.dropna(),n147.jmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma)
             
@@ -693,7 +784,24 @@ class basic_graphs:
             
             plotHess(n147.kmag.dropna(),n147.jmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma,levels=150)
             
-
+            
+    def plot_tan(self):
+        
+        if self.galaxy=='ngc147':
+            tanra=8.3005
+            tandec=48.5087389
+        elif self.galaxy=='ngc185':
+            tanra=9.7415417
+            tandec=48.3373778
+        elif self.galaxy=='ngc205'or self.galaxy=='ngc205_old':
+            tanra=10.09189356
+            tandec=41.68541564
+        
+        elif self.galaxy=='m32':
+            tandec=40.8651694
+            tanra=10.6742708
+        
+        self.plotter.spatial_plot_standard(self.n147,tanra,tandec)
             
     def plot_cchess(self):
         n147=self.n147.wfdat
