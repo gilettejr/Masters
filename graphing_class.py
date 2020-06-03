@@ -30,17 +30,21 @@ class graphs:
             
             return c
         self.mag=quadrat
-            
+        self.data=0
             
         
     #method produces K-J CMD, taking in asymphr or asympher inherited objects as input    
 
-    def kj_cmd(self,target):
+    def kj_cmd(self,gal=1):
     
     #figure created
         
         plt.figure()
-                
+        
+        if type(gal)!=int:
+            target=gal
+        else:
+            target=self.data
         
         #plot formatted and labelled
 
@@ -328,8 +332,7 @@ class graphs:
         
         plt.rc('axes',labelsize = 15)
         plt.plot(xi,eta,linestyle='none',marker = 'o',markersize=1,color='black')
-        plt.xlim(-0.3,0.3)
-        plt.ylim(-0.3,0.3)
+
         plt.gca().invert_xaxis()
         plt.gca().set_ylabel(r'$\eta$/degrees')
         plt.gca().set_xlabel(r'$\xi$/degrees')
@@ -921,7 +924,7 @@ class basic_graphs:
         
         print(str(len(points))+ ' datapoints')
         
-        if self.galaxy=='ngc205' or self.galaxy=='m322':
+        if self.galaxy=='ngc2055' or self.galaxy=='m322':
         
             self.plotter.kj_cmd_trim(self.n147,self.galaxy)
         
