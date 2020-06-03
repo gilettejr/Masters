@@ -126,7 +126,7 @@ class asymphr:
             
             for i in range(len(self.jcis)):
                 
-                 if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0 and self.jcis[i]!=-3.0) or (self.hcis[i] != -1.0 and self.hcis[i]!=-2.0 and self.hcis[i] !=3.0) or (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0 and self.kcis[i]!=-3.0):
+                 if (self.jcis[i] != -1.0 and self.jcis[i]!=-2.0 and self.jcis[i]!=-3.0) or (self.kcis[i] != -1.0 and self.kcis[i]!=-2.0 and self.kcis[i]!=-3.0):
                     
                     #if TRUE returned, data not plotted
                     

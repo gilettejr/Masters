@@ -12,9 +12,12 @@ import pandas as pd
 from asymphr import asymphr
 from astropy import stats
 from astropy.stats.histogram import knuth_bin_width
-from scipy.stats import gaussian_kde
+from scipy.stats import gaussian_kde,norm
 from HESSCMD import plotHess
 from crossmatching_utils import topcatcross
+
+from scipy.interpolate import make_interp_spline, BSpline
+
 #class containing methods for plotting various graphs from analysis output
 
 class graphs:
@@ -91,6 +94,33 @@ class graphs:
         
         #plt.axvline(x=1.34,linestyle=':',color='black')
         #plt.axhline(y=18,linestyle=':',color='black')
+        
+    def kj_cmd_trim(self,target,galaxy):
+        
+        cut=0
+        colour=0
+        
+        if galaxy=='ngc205':
+            
+            cut=30
+            colour=5
+        elif galaxy=='m32':
+        
+            cut=17.8
+            colour=0.7
+        for i in range(len(target.kmag)):
+            
+            if target.kmag[i] < cut or target.jmag[i]-target.kmag[i] < colour:
+                
+                target.loc[i]=np.nan
+        
+        plt.rc('axes',labelsize=20)
+        plt.scatter(target.jmag-target.kmag,target.kmag,s=1,color='black',marker='o')
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$K_0$')
+        plt.xlabel('$J_0$-$K_0$')
+        
         
     def kj_cmd_select(self,target,xmin,xmax,ymin,ymax):
     
@@ -183,6 +213,60 @@ class graphs:
         #plt.axvline(x=1.34,linestyle=':',color='black')
         #plt.axhline(y=18,linestyle=':',color='black')
     #method plots spatial distribution from target class or dataframe
+    
+    def jk_cmd(self,target):
+        
+        #figure created
+        
+        plt.figure()
+                
+        
+        #plot formatted and labelled
+
+        #plt.style.use('presentation')
+        plt.rc('axes',labelsize = 15)
+        plt.scatter(target.jmag-target.kmag,target.jmag,s=3,marker='o',alpha = 1,color='black')
+        
+        jerrval=[]
+        herrval=[]
+        kerrval=[]
+        
+        yerrpos=np.array([20,19,18,17,16,15])
+        xerrpos=np.zeros(len(yerrpos))
+        xerrpos=xerrpos-1
+        
+        for j in yerrpos:
+            
+            for i in range(len(target.jmag)):
+                
+                if np.isnan(target.jmag[i])==False:
+                    
+                    if (j-0.05) <target.kmag[i] < (j+0.05):
+                        
+                        jerrval.append(target.jerr[i])
+                        herrval.append(target.herr[i])
+                        kerrval.append(target.kerr[i])
+                        
+                        break
+        
+        jerrval=np.array(jerrval)
+        herrval=np.array(herrval)
+        kerrval=np.array(kerrval)
+        
+        print(kerrval)
+        
+        xerrval=self.mag(herrval,kerrval)
+        yerrval=kerrval
+                
+        #plt.errorbar(xerrpos,yerrpos,xerr=xerrval,yerr=yerrval,ecolor='red',linestyle='none')
+        #plt.ylim(11,21)
+        #plt.xlim(-1.5,4.5)
+        plt.gca().invert_yaxis()
+        plt.ylabel('$J_0$')
+        plt.xlabel('$J_0$-$K_0$')
+        
+        #plt.title(target.filename + ' CMD')
+        
 
     def spatial_plot(self,target):
         
@@ -239,6 +323,9 @@ class graphs:
         xi = xi * (180/np.pi)
         eta = eta *(180/np.pi)
         
+            
+            
+        
         plt.rc('axes',labelsize = 15)
         plt.plot(xi,eta,linestyle='none',marker = 'o',markersize=1,color='black')
         plt.xlim(-0.3,0.3)
@@ -247,6 +334,54 @@ class graphs:
         plt.gca().set_ylabel(r'$\eta$/degrees')
         plt.gca().set_xlabel(r'$\xi$/degrees')
         
+    def spatial_plot_trim(self,target,tangentra,tangentdec,galaxy):
+        
+        #target.loadascii()
+        #target.ciscuts()
+        
+        #co=ordinates converted fro degrees to radians
+        
+        cut=0
+        colour=0
+        
+        if galaxy=='ngc205':
+            cut=19.5
+            colour=2.5
+        elif galaxy=='m32':
+            cut=17.8
+            colour=0.7
+        ra = np.radians(target.ra)
+        dec = np.radians(target.dec)
+        tanra = np.radians(tangentra)
+        tandec = np.radians(tangentdec)
+        
+        #tangent co-ordinates xi and eta constructed
+        
+        xi = (np.cos(dec)*np.sin(ra-tanra))/(np.sin(dec)*np.sin(tandec) + np.cos(dec)*np.cos(tandec)*np.cos(ra-tanra))
+        
+        eta = (np.sin(dec)*np.cos(tandec)-np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))/(np.sin(dec)*np.cos(tandec)+np.cos(dec)*np.sin(tandec)*np.cos(ra-tanra))
+        
+        #tangent co-ordinates converted back from radians into degrees
+        
+        xi = xi * (180/np.pi)
+        eta = eta *(180/np.pi)
+        
+
+        
+        for i in range(len(target.kmag)):
+            if target.kmag[i] > cut or target.jmag[i]-target.kmag[i] < colour:
+                xi[i]=np.nan
+                eta[i]=np.nan
+            
+            
+        
+        plt.rc('axes',labelsize = 15)
+        plt.plot(xi,eta,linestyle='none',marker = 'o',markersize=0.5,color='black')
+        #plt.xlim(-0.2,0.3)
+        #plt.ylim(-0.3,0.3)
+        plt.gca().invert_xaxis()
+        plt.gca().set_ylabel(r'$\eta$ (degrees)')
+        plt.gca().set_xlabel(r'$\xi$ (degrees)')
     #method plots tangent point co-ordinate spatial distribution of two subsets of stars
     #process is simply duplicated version of method spatial_plot_standard for two subsets
         
@@ -713,46 +848,108 @@ class basic_graphs:
         if galaxy=='ngc147':
         
             n147 = topcatcross('lot_n147.unique',0)
-
+            
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()
+            data=n147.wfdat
             
         elif galaxy== 'ngc185':
             n147 = topcatcross('lot_n185.unique',0)
-
-            
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()
+            data=n147.wfdat            
         elif galaxy=='ngc205':
             n147 = topcatcross('N205_new_trimmed.unique',0)
-
-            
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()
+            data=n147.wfdat
         elif galaxy=='m32':
             n147=topcatcross('M32_new.asc',0)
-            
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()   
+            data=n147.wfdat            
         elif galaxy=='andromeda':
             n147=topcatcross('lot_m31.unique',0)
-            
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()    
+            data=n147.wfdat            
         elif galaxy=='ngc205_old':
             n147=topcatcross('N205_two.asc',0)
-            
-        #error returned if galaxy not recognised 
+            n147.loadascii()
+            n147.ciscuts()
+            n147.sbsextinction()
+            n147.make_dataframe()
+            data=n147.wfdat
         
         else:
             print('That is not a galaxy, enjoy the errors')
         
         #data loaded and cls cuts and extinction corrections carried out 
         
-        n147.loadascii()
-        n147.ciscuts()
-        n147.sbsextinction()
-        n147.make_dataframe()
+
         
         #data set as class attribute for running class methods
         
-        self.n147=n147
+        self.n147=data
         self.plotter=graphs()
     #uses the graphs().kj_cmd method to plot a CMD using class attribute data
         
     def plot_kj_cmd(self):
-        self.plotter.kj_cmd(self.n147)
         
+        colour=self.n147.jmag-self.n147.kmag
+        
+        #for i in range(len(self.n147.kmag)):
+            
+            #if self.n147.kmag[i] > 17.8 or self.n147.kmag[i] < 17.0 or colour[i] > 0.86 or colour[i] < 0.78:
+                #self.n147.loc[i] = np.nan
+                #print('yeet')
+        
+        points=[]
+        for i in self.n147.kmag:
+            if np.isnan(i)==False:
+                points.append(0)
+        
+        print(str(len(points))+ ' datapoints')
+        
+        if self.galaxy=='ngc205' or self.galaxy=='m322':
+        
+            self.plotter.kj_cmd_trim(self.n147,self.galaxy)
+        
+        else:
+            
+            self.plotter.kj_cmd(self.n147)
+            
+    def plot_jk_cmd(self):
+        
+        colour=self.n147.jmag-self.n147.kmag
+        
+        self.plotter.jk_cmd(self.n147)
+    
+    def removal_quality(self):
+
+        colour=self.n147.jmag-self.n147.kmag
+        
+        #for i in range(len(self.n147.kmag)):
+            
+            #if self.n147.kmag[i] > 18 or self.n147.kmag[i] < 17 or colour[i] > 1:
+                #self.n147.loc[i] = np.nan
+                #print('yeet')
+        #points=[]
+        #for i in self.n147.kmag:
+            #if np.isnan(i)==False:
+                #points.append(0)
+        
+        #print(str(len(points))+ ' datapoints')
     def plot_hk_cmd(self):
         self.plotter.hk_cmd(self.n147)
     
@@ -764,9 +961,69 @@ class basic_graphs:
         
     #uses the graphs().spatial_plot method to plot a spatial distribution using class attribute data
     
-    def plot_spatial(self):
+    def plot_lum(self):
+        
+        data=self.n147
+        
+        lum_func=data.kmag
+        
+        plt.figure()
+        
 
-        self.plotter.spatial_plot(self.n147)
+        sns.kdeplot(lum_func.dropna(),gridsize=100)
+        
+        line = plt.gca().get_lines()[0]
+        xd = line.get_xdata()
+        yd = line.get_ydata()
+        
+        diffy = np.diff(yd) / np.diff(xd)
+        diffx = (np.array(xd)[:-1] + np.array(xd)[1:]) / 2
+        
+        plt.plot(diffx,diffy,label='diff_lum_func')
+        
+        twodiffy = np.diff(diffy) / np.diff(diffx)
+        twodiffx = (np.array(diffx)[:-1] + np.array(diffx)[1:]) / 2        
+        
+        #plt.plot(twodiffx,twodiffy)
+        
+        # 300 represents number of points to make between T.min and T.max
+        xnew = np.linspace(twodiffx.min(), twodiffx.max(), 300) 
+        
+        spl = make_interp_spline(twodiffx, twodiffy, k=3)  # type: BSpline
+        ynew = spl(xnew)
+        
+        plt.plot(xnew, ynew,label='diff2_lum_func')
+        plt.legend()
+        plt.show()
+        
+    def plot_jlum(self):
+        
+        data=self.n147
+        
+        colour=data.jmag-data.kmag
+        
+        for i in range(len(data.jmag)):
+            
+            if colour[i]<1.4 or colour[i] >2 or data.jmag[i]>19.0 or data.jmag[i]<17.0:
+                data.loc[i]=np.nan
+        
+        #sns.kdeplot(data.jmag.dropna(),kernel='gau')
+        
+        mydata=data.jmag.dropna()
+        
+        mu, std = norm.fit(mydata)
+        
+        plt.hist(mydata, bins= 50,density=True, alpha=0.6, color='g')
+        
+        xmin, xmax = plt.xlim()
+        x = np.linspace(xmin, xmax, 100)
+        p = norm.pdf(x, mu, std)
+        plt.plot(x, p, 'k', linewidth=2)
+        
+        print(std)
+        print(mu)
+        
+
         
     #uses the graphs().xy_spatial_plot method to plot an xy pixel distribution using class attribute data    
         
@@ -774,9 +1031,9 @@ class basic_graphs:
         self.plotter.xy_spatial_plot(self.n147)
         
     def plot_hess(self):
-        n147=self.n147.wfdat
+        n147=self.n147
         
-        if self.galaxy=='ngc205' or self.galaxy=='ngc185':
+        if self.galaxy=='ngc205' or self.galaxy=='ngc185' or self.galaxy=='m32':
         
             plotHess(n147.kmag.dropna(),n147.jmag.dropna()-n147.kmag.dropna(),colormap=plt.cm.plasma)
             
@@ -800,8 +1057,12 @@ class basic_graphs:
         elif self.galaxy=='m32':
             tandec=40.8651694
             tanra=10.6742708
+            
+        if self.galaxy=='ngc205' or self.galaxy=='m32':        
         
-        self.plotter.spatial_plot_standard(self.n147,tanra,tandec)
+            self.plotter.spatial_plot_trim(self.n147,tanra,tandec,self.galaxy)
+        else:
+            self.plotter.spatial_plot_standard(self.n147,tanra,tandec)
             
     def plot_cchess(self):
         n147=self.n147.wfdat

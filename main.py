@@ -25,11 +25,10 @@ import numpy as np
 def main():
     
     
-    g=basic_graphs('ngc147')
-    g.plot_kj_cmd()
     
-    i=import_isos('ngc147','Isochrones/fini.dat')
-    i.overlay_agb_single()
+    g=basic_graphs('ngc205')
+    g.plot_jlum()
+    
         
     
 

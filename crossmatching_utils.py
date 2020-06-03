@@ -359,24 +359,38 @@ class crossed_data:
         
         crossed_table = gaiacross.read_crossed_csv(incrossfile)
         
-        #noise cut based on Gaia DR2 values and recomendations from the Gaia project website
         
+        
+        #noise cut based on Gaia DR2 values and recomendations from the Gaia project website
+        ncount=[]
         for i in range(len(crossed_table.parallax_over_error)):
             if crossed_table.astrometric_excess_noise_sig[i] > 2:
                 crossed_table.index_no[i]=np.nan
-                
+                ncount.append(0)
         #parallax cut to remove any badly  measured parallaxes
-                
+        pacount=[]
+        
         for i in range(len(crossed_table.parallax_over_error)):
-            if crossed_table.parallax_over_error[i] < 1:
+            
+            
+            if crossed_table.parallax_over_error[i] < 1 and ((np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 0.33 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i]))) < 0.33:
                 crossed_table.index_no[i]=np.nan
+            
+                pacount.append(0)
+
                 
         #proper motion cut to remove any proper motions pointing to distant objects (i.e. pm~0)
-                
+
         #for i in range(len(crossed_table.pmra)):
             #if (np.abs(crossed_table.pmra[i]/crossed_table.pmra_error[i])) < 1 or (np.abs(crossed_table.pmdec[i]/crossed_table.pmdec_error[i])) < 1:
                 #crossed_table.index_no[i]=np.nan
+                #pmcount.append(0)
 
+        print('crossed database original length is ' + str(len(crossed_table)))
+        print(str(len(ncount)) + ' removed as noise')
+        print(str(len(pacount)) + ' removed, parallax and proper motion badly measured')
+
+        
         
         #WFCAM data is loaded and the usual cuts made
         gaiacross.loadascii()

@@ -56,7 +56,7 @@ class run_cross:
             
         elif galaxy=='m32':
             n147topcross=topcatcross('M32_new.asc',0)
-            rmatch.topmatch(n147cross,'crossedm32.csv')
+            rmatch.topmatch(n147topcross,'crossedm32.csv')
             
         elif galaxy=='andromeda':
             n147topcross = topcatcross('lot_m31.unique',0)
@@ -119,8 +119,17 @@ class run_cross:
     
     def plot_gaiacrossed_cmd(self):
         self.n147topcross.delete_crossed_points()
-
+        colour=self.n147topcross.jmag-self.n147topcross.kmag
+        #for i in range(len(self.n147topcross.kmag)):
+            #if self.n147topcross.kmag[i] > 18 or self.n147topcross.kmag[i] < 17 or colour[i] > 1:
+                #self.n147topcross.kmag[i] = np.nan
+                #self.n147topcross.jmag[i] = np.nan
+        #points=[]
         
+        #for i in self.n147topcross.kmag:
+            #if np.isnan(i)==False:
+                #points.append(0)
+        #print(str(len(points)) + ' datapoints')
         plotter=graphs()
         plotter.kj_cmd(self.n147topcross)
         
