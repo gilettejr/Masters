@@ -2,9 +2,10 @@ from graphing_class import graphs
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 class sat(graphs):
 
-    def __init__(self,galaxy):
+    def __init__(self,galaxy,pandas=False,spitzer=False):
         
         def quadrat(a,b):
             
@@ -21,10 +22,19 @@ class sat(graphs):
                 break
         
         data=pd.read_parquet(infile)
+
+        if pandas == True:
+            
+            for i in infilenames:
+                if galaxy==i:
+                    pinfile=('pandas/' + i + '_pand' )
+                    break
+                pdata=pd.read_parquet(pinfile)
+                self.pdata=pdata
         
         self.galaxy=galaxy
         self.data=data
-    
+        self.infilenames=infilenames
     def plot_tan(self,stars='all',marker='o',markersize=1,color='black'):
         
         data=self.data
@@ -36,49 +46,18 @@ class sat(graphs):
         plt.gca().set_ylabel(r'$\eta$/degrees')
         plt.gca().set_xlabel(r'$\xi$/degrees')
     
-    def plot_hist_slices(self,maxm=20,minm=16,slicemag=0.3):
+    def plot_panda_cmd(self,marker='o',markersize=1,color='black'):
         
-        slices=np.linspace(minm,maxm,int((maxm-minm)/slicemag),endpoint=False)
-
-        colours=[]
-        kmags=[]
-        tdata=self.data.copy()
+        pdata=self.pdata
         
-        for i in slices:
-            
-            data=tdata.copy()
-            
+        plt.rc('axes',labelsize = 15)
+        plt.plot(pdata.g-pdata.i,pdata.i,linestyle='none',marker=marker,markersize=markersize,color=color)
+        
+        plt.gca().invert_yaxis()
+        plt.ylabel('$i_0$')
+        plt.xlabel('$g_0$-$i_0$')
 
-            length=[]
-            for j in range(len(data.kmag)):
-
-                
-                if np.isnan(data.kmag[j])==False:
-                    length.append(0)
                     
-                
-                if data.kmag[j] > (i + slicemag) or data.kmag[j] < i:
-
-                    data.loc[j]=np.nan
-                    #data.jmag[j]=np.nan
-                    
-            print(len(length))
-            
-
-            colours.append(data.jmag-data.kmag)
-            kmags.append(data.kmag)
-
-        fig,axs=plt.subplots(2,1)
-            
-        axs[0].hist(colours[1].dropna())
-        axs[1].plot(colours[1],kmags[1],linestyle='none',marker='o',markersize='1',color='black')
-        axs[1].plot(colours[1],kmags[1],linestyle='none',marker='o',markersize='1',color='red')
-                    
-                    
-                    
-                    
-                
-                
                 
             
             
